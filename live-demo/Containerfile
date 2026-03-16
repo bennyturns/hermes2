@@ -1,0 +1,14 @@
+FROM registry.access.redhat.com/ubi9/python-311:latest
+
+WORKDIR /opt/app-root/src
+
+COPY live-demo/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY simulation/app.py simulation/mock_data.py ./
+COPY simulation/templates/ ./templates/
+COPY simulation/static/ ./static/
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

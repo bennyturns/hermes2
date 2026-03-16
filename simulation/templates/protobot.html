@@ -1,0 +1,676 @@
+{% extends "base.html" %}
+{% block title %}ProtoBot — {{ project.name }}{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb">
+    <a href="/">Dashboard</a> <span>/</span> ProtoBot <span>/</span> {{ project.name }}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>ProtoBot: {{ project.name }}</h2>
+    <span class="badge badge-in-progress" id="protobot-status-badge">Phase 1: Discovery &amp; Blueprint</span>
+</div>
+
+<!-- Step indicator -->
+<div class="step-indicator" id="step-indicator">
+    <div class="step-item active" data-step="0" onclick="goToStep(0)">
+        <span class="step-num">Step 1</span>Research Leads
+    </div>
+    <div class="step-item" data-step="1" onclick="goToStep(1)">
+        <span class="step-num">Step 2</span>Research Findings
+    </div>
+    <div class="step-item" data-step="2" onclick="goToStep(2)">
+        <span class="step-num">Step 3</span>Follow-Up Q&A
+    </div>
+    <div class="step-item" data-step="3" onclick="goToStep(3)">
+        <span class="step-num">Step 4</span>Blueprint
+    </div>
+    <div class="step-item" data-step="4" onclick="goToStep(4)">
+        <span class="step-num">Step 5</span>HIL Review
+    </div>
+    <div class="step-item" data-step="5" onclick="goToStep(5)">
+        <span class="step-num">Step 6</span>Execution
+    </div>
+    <div class="step-item" data-step="6" onclick="goToStep(6)">
+        <span class="step-num">Step 7</span>Cross-Validation
+    </div>
+    <div class="step-item" data-step="7" onclick="goToStep(7)">
+        <span class="step-num">Step 8</span>Final Review
+    </div>
+</div>
+
+<!-- ═══ Step 0: Research Leads ═══ -->
+<div class="step-content active" id="step-0">
+    <div class="card">
+        <div class="card-header">
+            Research Leads Identified from IdeaBot Payload
+            <span class="edit-hint">click to edit actions</span>
+        </div>
+        <div class="card-body">
+            <p style="font-size:13px; color:var(--rh-gray-500); margin-bottom:12px;">
+                The Blueprint Agent parses every field in the IdeaBot payload and treats each as a research lead to follow.
+            </p>
+            {% for lead in research_leads %}
+            <div class="lead-item">
+                <div class="lead-source">{{ lead.source }}</div>
+                <div>
+                    <div class="lead-name">{{ lead.lead }}</div>
+                    <div class="lead-action" contenteditable="true">{{ lead.action }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Step 1: Research Findings ═══ -->
+<div class="step-content" id="step-1">
+    <div class="card">
+        <div class="card-header">
+            Autonomous Research Findings
+            <span class="edit-hint">click any finding to edit</span>
+        </div>
+        <div class="card-body">
+            <p style="font-size:13px; color:var(--rh-gray-500); margin-bottom:16px;">
+                The Blueprint Agent uses web search and web fetch to investigate each vector with real, current data.
+            </p>
+            {% for key, section in research_findings.items() %}
+            <div class="finding-section">
+                <h4>{{ section.title }}</h4>
+                <div class="subsection-label">Findings</div>
+                <ul class="finding-list">
+                    {% for f in section.findings %}
+                    <li contenteditable="true">{{ f }}</li>
+                    {% endfor %}
+                </ul>
+                {% if section.risks %}
+                <div class="subsection-label">Risks</div>
+                <ul class="finding-list risks">
+                    {% for r in section.risks %}
+                    <li contenteditable="true">{{ r }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if section.open_questions %}
+                <div class="subsection-label">Open Questions</div>
+                <ul class="finding-list open-questions">
+                    {% for q in section.open_questions %}
+                    <li contenteditable="true">{{ q }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Step 2: Follow-Up Questions ═══ -->
+<div class="step-content" id="step-2">
+    <div class="card">
+        <div class="card-header">
+            HIL Follow-Up Questions
+            <span class="edit-hint">click answers to edit</span>
+        </div>
+        <div class="card-body">
+            <p style="font-size:13px; color:var(--rh-gray-500); margin-bottom:16px;">
+                Based on the gap analysis, the Blueprint Agent asks targeted follow-up questions informed by its research.
+            </p>
+            {% for fq in followup_questions %}
+            <div class="followup-item">
+                <div class="followup-question">{{ fq.question }}</div>
+                <div class="followup-answer" contenteditable="true">{{ fq.default_answer }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Step 3: Blueprint ═══ -->
+<div class="step-content" id="step-3">
+    <div class="card">
+        <div class="card-header">
+            Technical Blueprint: {{ project.name }}
+            <span class="edit-hint">click any item to edit</span>
+        </div>
+        <div class="card-body">
+            <p style="font-size:13px; color:var(--rh-gray-500); margin-bottom:16px;">
+                The complete blueprint, incorporating all research and HIL answers. Every claim cites evidence or flags assumptions.
+            </p>
+            {% for key, section in research_findings.items() %}
+            <div class="finding-section">
+                <h4>{{ loop.index }}. {{ section.title }}</h4>
+                <div class="subsection-label">Findings</div>
+                <ul class="finding-list">
+                    {% for f in section.findings %}
+                    <li contenteditable="true">{{ f }}</li>
+                    {% endfor %}
+                </ul>
+                {% if section.risks %}
+                <div class="subsection-label">Risks</div>
+                <ul class="finding-list risks">
+                    {% for r in section.risks %}
+                    <li contenteditable="true">{{ r }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% if section.open_questions %}
+                <div class="subsection-label">Open Questions</div>
+                <ul class="finding-list open-questions">
+                    {% for q in section.open_questions %}
+                    <li contenteditable="true">{{ q }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Step 4: HIL Review ═══ -->
+<div class="step-content" id="step-4">
+    <div class="card">
+        <div class="card-header">HIL Blueprint Review</div>
+        <div class="card-body">
+            <p style="font-size:14px; margin-bottom:16px;">
+                "Please review this strategic blueprint. Which assumptions would you like to edit, accept, or reject before we lock in the context and begin prototype generation?"
+            </p>
+            <div style="background: var(--rh-gray-100); padding: 16px; border-radius: 4px; margin-bottom: 16px;">
+                <strong>Blueprint Summary:</strong>
+                <ul style="margin-top: 8px; padding-left: 20px; font-size: 14px;">
+                    <li>5 vectors researched with evidence-backed findings</li>
+                    <li>2 open questions identified for downstream resolution</li>
+                    <li>5 HIL follow-up questions answered and incorporated</li>
+                    <li>Minimum viable scope: 7B model on dual-socket Xeon 6, feasibility demo</li>
+                </ul>
+            </div>
+        </div>
+        <div class="hil-actions">
+            <span class="label">HIL Decision</span>
+            <button class="btn btn-primary btn-sm" onclick="approveBlueprint()">Approve Blueprint</button>
+            <button class="btn btn-secondary btn-sm" onclick="goToStep(3)">Edit Blueprint</button>
+            <button class="btn btn-secondary btn-sm" disabled>Reject</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Step 5: Phase 2 Agents ═══ -->
+<div class="step-content" id="step-5">
+    <p style="font-size:13px; color:var(--rh-gray-500); margin-bottom:16px;">
+        The Orchestrator spawns implementation agents in dependency order. Wave 1 runs Code + Comms in parallel, Wave 2 runs Infra after Code completes.
+    </p>
+    <div class="agent-grid">
+        <!-- Code Agent -->
+        <div class="agent-panel">
+            <div class="card">
+                <div class="card-header">
+                    Code Generation Agent
+                    <span class="badge badge-complete">{{ phase2_code.status }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="subsection-label">Generated Files ({{ phase2_code.files|length }})</div>
+                    <ul class="file-list">
+                        {% for f in phase2_code.files %}
+                        <li>
+                            <div class="file-path">{{ f.path }}</div>
+                            <div class="file-desc" contenteditable="true">{{ f.description }}</div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="subsection-label" style="margin-top:12px">Build & Test Summary</div>
+                    <div contenteditable="true" style="font-size:12px; font-family:monospace; background:var(--rh-gray-100); padding:10px; border-radius:4px; white-space:pre-wrap;">{{ phase2_code.build_test_summary }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Infra Agent -->
+        <div class="agent-panel">
+            <div class="card">
+                <div class="card-header">
+                    Infrastructure & Security Agent
+                    <span class="badge badge-complete">{{ phase2_infra.status }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="subsection-label">Generated Files ({{ phase2_infra.files|length }})</div>
+                    <ul class="file-list">
+                        {% for f in phase2_infra.files %}
+                        <li>
+                            <div class="file-path">{{ f.path }}</div>
+                            <div class="file-desc" contenteditable="true">{{ f.description }}</div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="subsection-label" style="margin-top:12px">Deployment Guide</div>
+                    <div contenteditable="true" style="font-size:12px; font-family:monospace; background:var(--rh-gray-100); padding:10px; border-radius:4px; white-space:pre-wrap;">{{ phase2_infra.deployment_guide }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ops Agent -->
+    <div class="card" style="margin-top: 16px;">
+        <div class="card-header">
+            Operations & Comms Agent
+            <span class="badge badge-complete" style="margin-left:auto;">{{ phase2_ops.status }}</span>
+        </div>
+        <div class="card-body">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab(event, 'email')">Email Draft</button>
+                <button class="tab-btn" onclick="showTab(event, 'calendar')">Calendar Invite</button>
+                <button class="tab-btn" onclick="showTab(event, 'blog')">Blog Post</button>
+            </div>
+            <!-- Email -->
+            <div class="tab-content active" id="tab-email">
+                <div class="email-preview">
+                    <div class="email-header">
+                        <div><strong>Subject:</strong> <span contenteditable="true">{{ phase2_ops.email.subject }}</span></div>
+                        <div><strong>To:</strong> <span contenteditable="true">{{ phase2_ops.email.to }}</span></div>
+                        <div><strong>Cc:</strong> <span contenteditable="true">{{ phase2_ops.email.cc }}</span></div>
+                    </div>
+                    <div contenteditable="true">{{ phase2_ops.email.body }}</div>
+                </div>
+            </div>
+            <!-- Calendar -->
+            <div class="tab-content" id="tab-calendar">
+                <div class="calendar-preview">
+                    <div style="margin-bottom:12px;"><strong>Title:</strong> <span contenteditable="true">{{ phase2_ops.calendar.title }}</span></div>
+                    <div style="margin-bottom:8px;"><strong>Attendees:</strong> <span contenteditable="true">{{ phase2_ops.calendar.attendees }}</span></div>
+                    <div style="margin-bottom:8px;"><strong>Duration:</strong> <span contenteditable="true">{{ phase2_ops.calendar.duration }}</span></div>
+                    <div style="margin-bottom:8px;"><strong>Proposed Date:</strong> <span contenteditable="true">{{ phase2_ops.calendar.proposed_date }}</span></div>
+                    <div style="margin-bottom:8px;"><strong>Time Zone:</strong> <span contenteditable="true">{{ phase2_ops.calendar.timezone_note }}</span></div>
+                    <div style="margin-bottom:12px;"><strong>Conferencing:</strong> <span contenteditable="true">{{ phase2_ops.calendar.conferencing }}</span></div>
+                    <div><strong>Agenda:</strong></div>
+                    <ol style="padding-left:20px; margin-top:6px;">
+                        {% for item in phase2_ops.calendar.agenda %}
+                        <li style="margin-bottom:4px;" contenteditable="true">{{ item }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            </div>
+            <!-- Blog -->
+            <div class="tab-content" id="tab-blog">
+                <div class="blog-preview">
+                    <h3 style="margin-bottom:12px; font-family:var(--font-heading);" contenteditable="true">{{ phase2_ops.blog_post.title }}</h3>
+                    <div contenteditable="true">{{ phase2_ops.blog_post.content }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Step 6: Cross-Validation ═══ -->
+<div class="step-content" id="step-6">
+    <div class="card">
+        <div class="card-header">Orchestrator Cross-Validation</div>
+        <div class="card-body">
+            <p style="font-size:13px; color:var(--rh-gray-500); margin-bottom:16px;">
+                After Wave 2 completes, the Orchestrator systematically verifies consistency between Code and Infrastructure outputs.
+            </p>
+            <table class="cv-table">
+                <thead>
+                    <tr>
+                        <th>Check</th>
+                        <th>Status</th>
+                        <th>Detail</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cv in phase2_cross_validation %}
+                    <tr>
+                        <td>{{ cv.check }}</td>
+                        <td>
+                            {% if cv.status == 'pass' %}
+                                <span class="cv-pass">PASS</span>
+                            {% elif cv.status == 'fixed' %}
+                                <span class="cv-fixed">FIXED</span>
+                            {% else %}
+                                <span class="cv-fail">FAIL</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:13px; color:var(--rh-gray-700);" contenteditable="true">{{ cv.detail }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ Step 7: Final Review ═══ -->
+<div class="step-content" id="step-7">
+    <div class="card">
+        <div class="card-header">HIL Final Review</div>
+        <div class="card-body">
+            <p style="font-size:14px; margin-bottom:20px;">
+                All artifacts compiled. Review each category and choose an action.
+            </p>
+
+            <!-- 1. Code Artifacts -->
+            <div style="margin-bottom: 20px; padding: 16px; background: var(--rh-gray-100); border-radius: 4px;">
+                <strong>1. Code Artifacts</strong>
+                <p style="font-size:13px; color:var(--rh-gray-700); margin:8px 0;">
+                    {{ phase2_code.files|length }} source files (Python + C++ AMX kernels, tests, dependency manifest)
+                </p>
+                <div style="margin: 10px 0;">
+                    <label style="font-size:12px; font-weight:500; color:var(--rh-gray-700); display:block; margin-bottom:4px;">Target Repository</label>
+                    <input type="text" id="field-code-repo" data-field="code-repo" class="editable-textarea" style="min-height:auto; padding:6px 10px; font-size:13px; font-family:monospace;" value="https://github.com/redhat-et/vllm-cpu">
+                </div>
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button class="btn btn-primary btn-sm" onclick="pushCode(this)">Push Code</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Saved locally')">Save to Local Directory</button>
+                </div>
+            </div>
+
+            <!-- 2. Infrastructure Artifacts -->
+            <div style="margin-bottom: 20px; padding: 16px; background: var(--rh-gray-100); border-radius: 4px;">
+                <strong>2. Infrastructure Artifacts</strong>
+                <p style="font-size:13px; color:var(--rh-gray-700); margin:8px 0;">
+                    {{ phase2_infra.files|length }} infrastructure files (Containerfile, OpenShift manifests, Tekton pipeline, Makefile)
+                </p>
+
+                <div style="margin: 10px 0;">
+                    <label style="font-size:12px; font-weight:500; color:var(--rh-gray-700); display:block; margin-bottom:4px;">Deploy Target</label>
+                    <select id="field-deploy-target" data-field="deploy-target" style="padding:6px 10px; font-size:13px; border:1px solid var(--rh-gray-300); border-radius:4px; font-family:var(--font-body); width:100%;" onchange="toggleDeployOptions(this.value)">
+                        <option value="remote">Remote Server (OpenShift/Kubernetes)</option>
+                        <option value="local">Local Environment (venv / podman)</option>
+                    </select>
+                </div>
+
+                <!-- Remote deploy options -->
+                <div id="deploy-remote-options" style="margin-top:12px;">
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:12px; font-weight:500; color:var(--rh-gray-700); display:block; margin-bottom:4px;">Cluster API URL</label>
+                        <input type="text" id="field-cluster-url" data-field="cluster-url" class="editable-textarea" style="min-height:auto; padding:6px 10px; font-size:13px; font-family:monospace;" value="https://api.octo-research.example.com:6443">
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:12px; font-weight:500; color:var(--rh-gray-700); display:block; margin-bottom:4px;">Namespace</label>
+                        <input type="text" id="field-namespace" data-field="namespace" class="editable-textarea" style="min-height:auto; padding:6px 10px; font-size:13px; font-family:monospace;" value="octo-vllm-cpu">
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:12px; font-weight:500; color:var(--rh-gray-700); display:block; margin-bottom:4px;">Image Registry</label>
+                        <input type="text" id="field-registry" data-field="registry" class="editable-textarea" style="min-height:auto; padding:6px 10px; font-size:13px; font-family:monospace;" value="quay.io/redhat-et/vllm-cpu">
+                    </div>
+                </div>
+
+                <!-- Local deploy options -->
+                <div id="deploy-local-options" style="margin-top:12px; display:none;">
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:12px; font-weight:500; color:var(--rh-gray-700); display:block; margin-bottom:4px;">Local Project Directory</label>
+                        <input type="text" id="field-local-dir" data-field="local-dir" class="editable-textarea" style="min-height:auto; padding:6px 10px; font-size:13px; font-family:monospace;" value="~/projects/vllm-cpu">
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:12px; font-weight:500; color:var(--rh-gray-700); display:block; margin-bottom:4px;">Container Runtime</label>
+                        <select id="field-container-runtime" data-field="container-runtime" style="padding:6px 10px; font-size:13px; border:1px solid var(--rh-gray-300); border-radius:4px; font-family:var(--font-body); width:100%;">
+                            <option value="podman">Podman</option>
+                            <option value="docker">Docker</option>
+                            <option value="none">No container (venv only)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Environment variables -->
+                <div style="margin-top:12px;">
+                    <label style="font-size:12px; font-weight:500; color:var(--rh-gray-700); display:block; margin-bottom:4px;">Environment Variables</label>
+                    <div id="env-vars-container">
+                        <div class="env-var-row" style="display:flex; gap:6px; margin-bottom:4px;">
+                            <input type="text" data-field="env-key" class="editable-textarea" style="min-height:auto; padding:5px 8px; font-size:12px; font-family:monospace; width:35%;" value="NUMA_AWARE" placeholder="KEY">
+                            <input type="text" data-field="env-val" class="editable-textarea" style="min-height:auto; padding:5px 8px; font-size:12px; font-family:monospace; flex:1;" value="true" placeholder="VALUE">
+                            <button class="btn btn-secondary btn-sm" style="padding:4px 8px; font-size:11px;" onclick="this.parentElement.remove()">x</button>
+                        </div>
+                        <div class="env-var-row" style="display:flex; gap:6px; margin-bottom:4px;">
+                            <input type="text" data-field="env-key" class="editable-textarea" style="min-height:auto; padding:5px 8px; font-size:12px; font-family:monospace; width:35%;" value="VLLM_CPU_THREADS" placeholder="KEY">
+                            <input type="text" data-field="env-val" class="editable-textarea" style="min-height:auto; padding:5px 8px; font-size:12px; font-family:monospace; flex:1;" value="16" placeholder="VALUE">
+                            <button class="btn btn-secondary btn-sm" style="padding:4px 8px; font-size:11px;" onclick="this.parentElement.remove()">x</button>
+                        </div>
+                        <div class="env-var-row" style="display:flex; gap:6px; margin-bottom:4px;">
+                            <input type="text" data-field="env-key" class="editable-textarea" style="min-height:auto; padding:5px 8px; font-size:12px; font-family:monospace; width:35%;" value="VLLM_CPU_MODEL" placeholder="KEY">
+                            <input type="text" data-field="env-val" class="editable-textarea" style="min-height:auto; padding:5px 8px; font-size:12px; font-family:monospace; flex:1;" value="meta-llama/Llama-2-7b-hf" placeholder="VALUE">
+                            <button class="btn btn-secondary btn-sm" style="padding:4px 8px; font-size:11px;" onclick="this.parentElement.remove()">x</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" style="margin-top:4px;" onclick="addEnvVar()">+ Add Variable</button>
+                </div>
+
+                <div style="display:flex; gap:8px; margin-top:14px;">
+                    <button class="btn btn-primary btn-sm" onclick="deployInfra(this)">Deploy</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Saved locally')">Save Manifests Only</button>
+                </div>
+            </div>
+
+            <!-- 3. Catcher Email -->
+            <div style="margin-bottom: 20px; padding: 16px; background: var(--rh-gray-100); border-radius: 4px;">
+                <strong>3. Catcher Email</strong>
+                <p style="font-size:13px; color:var(--rh-gray-700); margin:8px 0;">
+                    To: Taneem Ibrahim, Erwan Gallen, Tyler Michael Smith
+                </p>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="btn btn-primary btn-sm" onclick="markAction(this, 'Email sent')">Send Now</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Saved to file')">Save to File</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Exported to Google Doc')">Export to Google Doc</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Skipped')">Skip</button>
+                </div>
+            </div>
+
+            <!-- 4. Calendar -->
+            <div style="margin-bottom: 20px; padding: 16px; background: var(--rh-gray-100); border-radius: 4px;">
+                <strong>4. Meeting Invite</strong>
+                <p style="font-size:13px; color:var(--rh-gray-700); margin:8px 0;">
+                    Transfer Decision Checkpoint: vllm-cpu — March 27, 2026, 45 min
+                </p>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="btn btn-primary btn-sm" onclick="markAction(this, 'Invite sent')">Send Now</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Saved to file')">Save to File</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Exported to Google Doc')">Export to Google Doc</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Skipped')">Skip</button>
+                </div>
+            </div>
+
+            <!-- 5. Blog -->
+            <div style="margin-bottom: 20px; padding: 16px; background: var(--rh-gray-100); border-radius: 4px;">
+                <strong>5. Blog Post</strong>
+                <p style="font-size:13px; color:var(--rh-gray-700); margin:8px 0;">
+                    "Bringing CPU Inference to vLLM: Why Accelerator Optionality Matters"
+                </p>
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button class="btn btn-primary btn-sm" onclick="markAction(this, 'Staged for publication')">Stage on next.redhat.com</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Saved to file')">Save to File</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Exported to Google Doc')">Export to Google Doc</button>
+                    <button class="btn btn-secondary btn-sm" onclick="markAction(this, 'Skipped')">Skip</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 24px; text-align: center;">
+                <button class="btn btn-primary" onclick="completeProtobot()">Complete ProtoBot</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Step navigation -->
+<div class="step-nav">
+    <button class="btn btn-secondary" id="btn-prev" onclick="prevStep()" disabled>Previous</button>
+    <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Next Step</button>
+</div>
+
+{% include "chat_panel.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentStep = 0;
+const totalSteps = 8;
+const CHAT_CONTEXT = 'blueprint';
+
+function goToStep(step) {
+    if (step < 0 || step >= totalSteps) return;
+
+    document.querySelectorAll('.step-item').forEach((el, i) => {
+        el.classList.remove('active');
+        if (i < step) el.classList.add('completed');
+        else el.classList.remove('completed');
+        if (i === step) el.classList.add('active');
+    });
+
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    document.getElementById('step-' + step).classList.add('active');
+
+    document.getElementById('btn-prev').disabled = (step === 0);
+    document.getElementById('btn-next').disabled = (step === totalSteps - 1);
+    document.getElementById('btn-next').textContent = (step === totalSteps - 2) ? 'Final Review' : 'Next Step';
+
+    const badge = document.getElementById('protobot-status-badge');
+    if (step <= 4) {
+        badge.textContent = 'Phase 1: Discovery & Blueprint';
+        badge.className = 'badge badge-in-progress';
+    } else {
+        badge.textContent = 'Phase 2: Execution';
+        badge.className = 'badge badge-blueprint';
+    }
+
+    // Auto-switch chat context based on step
+    const chatSelect = document.getElementById('chat-context-select');
+    if (chatSelect) {
+        if (step <= 4) chatSelect.value = 'blueprint';
+        else chatSelect.value = 'phase2';
+    }
+
+    currentStep = step;
+
+    let status = 'In Progress';
+    if (step >= 5) status = 'Phase 2';
+    if (step === 7) status = 'Final Review';
+    fetch('/protobot/{{ project.id }}/status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status: status})
+    });
+}
+
+function nextStep() { goToStep(currentStep + 1); }
+function prevStep() { goToStep(currentStep - 1); }
+
+function approveBlueprint() { goToStep(5); }
+
+function showTab(evt, tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    evt.target.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function markAction(btn, label) {
+    const parent = btn.parentElement;
+    parent.innerHTML = '<span class="badge badge-complete">' + label + '</span>';
+}
+
+function completeProtobot() {
+    fetch('/protobot/{{ project.id }}/status', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status: 'Complete'})
+    }).then(() => {
+        const badge = document.getElementById('protobot-status-badge');
+        badge.textContent = 'Complete';
+        badge.className = 'badge badge-complete';
+        window.location = '/';
+    });
+}
+
+function toggleDeployOptions(value) {
+    document.getElementById('deploy-remote-options').style.display = (value === 'remote') ? 'block' : 'none';
+    document.getElementById('deploy-local-options').style.display = (value === 'local') ? 'block' : 'none';
+}
+
+function addEnvVar() {
+    const container = document.getElementById('env-vars-container');
+    const row = document.createElement('div');
+    row.className = 'env-var-row';
+    row.style.cssText = 'display:flex; gap:6px; margin-bottom:4px;';
+    row.innerHTML = `
+        <input type="text" data-field="env-key" class="editable-textarea" style="min-height:auto; padding:5px 8px; font-size:12px; font-family:monospace; width:35%;" placeholder="KEY">
+        <input type="text" data-field="env-val" class="editable-textarea" style="min-height:auto; padding:5px 8px; font-size:12px; font-family:monospace; flex:1;" placeholder="VALUE">
+        <button class="btn btn-secondary btn-sm" style="padding:4px 8px; font-size:11px;" onclick="this.parentElement.remove()">x</button>
+    `;
+    container.appendChild(row);
+}
+
+function pushCode(btn) {
+    const repo = document.getElementById('field-code-repo').value;
+    const parent = btn.parentElement;
+    parent.innerHTML = '<span class="badge badge-complete">Pushed to ' + escapeHtml(repo) + '</span>';
+}
+
+function deployInfra(btn) {
+    const target = document.getElementById('field-deploy-target').value;
+    const parent = btn.parentElement;
+    if (target === 'remote') {
+        const cluster = document.getElementById('field-cluster-url').value;
+        const ns = document.getElementById('field-namespace').value;
+        parent.innerHTML = '<span class="badge badge-complete">Deployed to ' + escapeHtml(ns) + ' on ' + escapeHtml(cluster) + '</span>';
+    } else {
+        const dir = document.getElementById('field-local-dir').value;
+        parent.innerHTML = '<span class="badge badge-complete">Deployed locally to ' + escapeHtml(dir) + '</span>';
+    }
+}
+
+// Collect all field values from the page for the agent chat
+function collectFieldValues() {
+    const fields = {};
+    // Input fields with data-field
+    document.querySelectorAll('[data-field]').forEach(el => {
+        const key = el.getAttribute('data-field');
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            fields[key] = el.value;
+        } else if (el.tagName === 'SELECT') {
+            fields[key] = el.value;
+        }
+    });
+    // Env vars
+    const envVars = [];
+    document.querySelectorAll('.env-var-row').forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        if (inputs.length >= 2 && inputs[0].value) {
+            envVars.push({key: inputs[0].value, value: inputs[1].value});
+        }
+    });
+    fields['env-vars'] = envVars;
+    // Current step
+    fields['current-step'] = currentStep;
+    return fields;
+}
+
+// Apply field updates from the agent
+function applyFieldUpdates(updates) {
+    if (!updates) return;
+    for (const [fieldId, value] of Object.entries(updates)) {
+        if (fieldId === 'env-vars' && Array.isArray(value)) {
+            const container = document.getElementById('env-vars-container');
+            container.innerHTML = '';
+            value.forEach(ev => {
+                addEnvVar();
+                const lastRow = container.lastElementChild;
+                const inputs = lastRow.querySelectorAll('input');
+                inputs[0].value = ev.key;
+                inputs[1].value = ev.value;
+            });
+            continue;
+        }
+        const el = document.getElementById('field-' + fieldId);
+        if (el) {
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.value = value;
+                el.style.background = '#FFF8E1';
+                setTimeout(() => { el.style.background = ''; }, 2000);
+            } else if (el.tagName === 'SELECT') {
+                el.value = value;
+                el.dispatchEvent(new Event('change'));
+            }
+        }
+    }
+}
+</script>
+<script src="/static/chat.js"></script>
+{% endblock %}

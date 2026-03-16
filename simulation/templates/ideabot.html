@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}IdeaBot — {{ project.name }}{% endblock %}
+
+{% block breadcrumb %}
+<div class="breadcrumb">
+    <a href="/">Dashboard</a> <span>/</span> IdeaBot <span>/</span> {{ project.name }}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>IdeaBot: {{ project.name }}</h2>
+    <span class="badge {% if project.ideabot_status == 'Approved' %}badge-approved{% elif project.ideabot_status == 'In Progress' %}badge-in-progress{% else %}badge-not-started{% endif %}">
+        {{ project.ideabot_status }}
+    </span>
+</div>
+
+<!-- Step-by-step Q&A walkthrough -->
+<div class="card">
+    <div class="card-header">
+        Idea Evaluation Q&A
+        <span class="edit-hint">click any answer to edit</span>
+    </div>
+    <div class="card-body">
+        <div id="qa-container">
+            {% for i in range(questions|length) %}
+            <div class="qa-item" id="qa-{{ i }}" {% if i >= answers|length %}style="display:none"{% elif i > 0 %}style="display:none"{% endif %}>
+                <div class="qa-question">Q: {{ questions[i] }}</div>
+                {% if i < answers|length %}
+                <div class="qa-answer" id="qa-answer-{{ i }}" style="display:none">A: <span contenteditable="true">{{ answers[i] }}</span></div>
+                {% else %}
+                <div class="qa-answer" style="color: var(--rh-gray-300); font-style: italic;">Awaiting response...</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top: 16px; display: flex; gap: 10px;">
+            <button class="btn btn-primary btn-sm" id="btn-next-qa" onclick="nextQA()">Next</button>
+            <button class="btn btn-secondary btn-sm" id="btn-show-all" onclick="showAllQA()">Show All</button>
+        </div>
+    </div>
+</div>
+
+{% if evaluation %}
+<div class="card" id="evaluation-card" style="display: none;">
+    <div class="card-header">IdeaBot Evaluation</div>
+    <div class="card-body">
+        <div class="eval-decision">
+            Decision: <span class="badge badge-approved">{{ evaluation.decision }}</span>
+        </div>
+        <div class="eval-rationale">
+            <strong>Rationale:</strong> <span contenteditable="true">{{ evaluation.rationale }}</span>
+        </div>
+    </div>
+    <div class="hil-actions">
+        <span class="label">HIL Review</span>
+        <button class="btn btn-primary btn-sm" onclick="approveIdea()">Approve</button>
+        <button class="btn btn-secondary btn-sm" onclick="window.location='/'">Back to Dashboard</button>
+    </div>
+</div>
+{% endif %}
+
+<div class="step-nav">
+    <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+    {% if project.ideabot_status == 'Approved' %}
+    <a href="/protobot/{{ project.id }}" class="btn btn-primary">Continue to ProtoBot</a>
+    {% endif %}
+</div>
+
+{% include "chat_panel.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const totalQA = {{ questions|length }};
+const totalAnswers = {{ answers|length }};
+let currentQA = 0;
+const CHAT_CONTEXT = 'ideabot';
+
+function nextQA() {
+    const answer = document.getElementById('qa-answer-' + currentQA);
+    if (answer && answer.style.display === 'none') {
+        answer.style.display = 'block';
+        return;
+    }
+    currentQA++;
+    if (currentQA < totalAnswers) {
+        const item = document.getElementById('qa-' + currentQA);
+        if (item) {
+            item.style.display = 'block';
+            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    } else {
+        document.getElementById('btn-next-qa').disabled = true;
+        const evalCard = document.getElementById('evaluation-card');
+        if (evalCard) {
+            evalCard.style.display = 'block';
+            evalCard.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+}
+
+function showAllQA() {
+    for (let i = 0; i < totalAnswers; i++) {
+        const item = document.getElementById('qa-' + i);
+        const answer = document.getElementById('qa-answer-' + i);
+        if (item) item.style.display = 'block';
+        if (answer) answer.style.display = 'block';
+    }
+    currentQA = totalAnswers;
+    document.getElementById('btn-next-qa').disabled = true;
+    const evalCard = document.getElementById('evaluation-card');
+    if (evalCard) evalCard.style.display = 'block';
+}
+
+function approveIdea() {
+    fetch('/ideabot/{{ project.id }}/approve', { method: 'POST' })
+        .then(() => window.location = '/');
+}
+</script>
+<script src="/static/chat.js"></script>
+{% endblock %}

@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 class="card-title">OCTO Projects Dashboard</h1>
+                <p class="card-subtitle">Track emerging technology prototypes from idea to transfer</p>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button class="button button-secondary" onclick="openQuickPrototypeModal()">
+                    ⚡ Quick Prototype
+                </button>
+                <button class="button button-primary" onclick="openNewIdeaModal()">
+                    ✨ Submit New Idea
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Lead</th>
+                        <th>Strategic Priority</th>
+                        <th>Catcher Org</th>
+                        <th>IdeaBot Status</th>
+                        <th>ProtoBot Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in projects %}
+                    <tr>
+                        <td>
+                            <strong>{{ project.name }}</strong><br>
+                            <span class="text-muted" style="font-size: 0.85rem;">{{ project.catcher_product }}</span>
+                        </td>
+                        <td>{{ project.lead }}</td>
+                        <td>{{ project.strategic_priority }}</td>
+                        <td>{{ project.catcher_org }}</td>
+                        <td>
+                            {% if project.ideabot_status == "approved" %}
+                                <span class="badge badge-approved">Approved</span>
+                            {% elif project.ideabot_status == "rejected" %}
+                                <span class="badge badge-rejected">Rejected</span>
+                            {% elif project.ideabot_status == "in_progress" %}
+                                <span class="badge badge-in-progress">In Progress</span>
+                            {% elif project.ideabot_status == "not_started" %}
+                                <span class="badge badge-not-started">Not Started</span>
+                            {% elif project.ideabot_status == "skipped" %}
+                                <span class="badge badge-na">Skipped</span>
+                            {% else %}
+                                <span class="badge badge-na">{{ project.ideabot_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if project.protobot_status == "complete" %}
+                                <span class="badge badge-complete">Complete</span>
+                            {% elif project.protobot_status == "in_progress" %}
+                                <span class="badge badge-in-progress">In Progress</span>
+                            {% elif project.protobot_status == "not_started" %}
+                                <span class="badge badge-not-started">Not Started</span>
+                            {% elif project.protobot_status == "n/a" %}
+                                <span class="badge badge-na">N/A</span>
+                            {% else %}
+                                <span class="badge badge-na">{{ project.protobot_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                {% if project.ideabot_status == "skipped" and project.protobot_status == "skipped" %}
+                                    <!-- QuickProto - Speckit workflow (in progress) -->
+                                    <a href="/quickproto/{{ project.id }}" class="button button-primary" style="font-size: 0.85rem; padding: 4px 12px;">Continue</a>
+                                {% elif project.ideabot_status == "skipped" and project.protobot_status == "complete" and project.lead == "QuickProto" %}
+                                    <!-- QuickProto - Speckit workflow (complete) -->
+                                    <a href="/quickproto/{{ project.id }}" class="button button-secondary" style="font-size: 0.85rem; padding: 4px 12px;">View</a>
+                                {% elif project.ideabot_status == "skipped" and project.protobot_status == "in_progress" %}
+                                    <!-- Old Quick Prototype (ProtoBot) - no IdeaBot -->
+                                    <a href="/protobot/{{ project.id }}" class="button button-primary" style="font-size: 0.85rem; padding: 4px 12px;">Continue</a>
+                                {% elif project.ideabot_status == "skipped" and project.protobot_status == "complete" %}
+                                    <a href="/protobot/{{ project.id }}" class="button button-secondary" style="font-size: 0.85rem; padding: 4px 12px;">View</a>
+                                {% else %}
+                                    <!-- Normal flow - IdeaBot + ProtoBot -->
+                                    <a href="/ideabot/{{ project.id }}" class="button button-secondary" style="font-size: 0.85rem; padding: 4px 12px;">View</a>
+                                    {% if project.ideabot_status == "approved" %}
+                                        {% if project.protobot_status == "not_started" %}
+                                            <a href="/protobot/{{ project.id }}" class="button button-primary" style="font-size: 0.85rem; padding: 4px 12px;">Start</a>
+                                        {% elif project.protobot_status == "in_progress" %}
+                                            <a href="/protobot/{{ project.id }}" class="button button-primary" style="font-size: 0.85rem; padding: 4px 12px;">Continue</a>
+                                        {% elif project.protobot_status == "complete" %}
+                                            <a href="/protobot/{{ project.id }}" class="button button-secondary" style="font-size: 0.85rem; padding: 4px 12px;">View</a>
+                                        {% endif %}
+                                    {% else %}
+                                        <button class="button button-primary" style="font-size: 0.85rem; padding: 4px 12px;" disabled>Start</button>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- New Idea Modal -->
+<div id="new-idea-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Submit New Idea</h2>
+            <button class="modal-close" onclick="closeNewIdeaModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 24px; color: var(--rh-gray-mid);">
+                Start the IdeaBot evaluation process by providing basic information about your project idea. If your idea is already approved by OCTO leadership, check the box below to skip evaluation.
+            </p>
+
+            <form id="new-idea-form">
+                <div class="form-group">
+                    <label for="pitcher-name">Your Name *</label>
+                    <input type="text" id="pitcher-name" required placeholder="Jane Developer">
+                </div>
+
+                <div class="form-group">
+                    <label for="project-name">Project Name *</label>
+                    <input type="text" id="project-name" required placeholder="My Amazing Project">
+                </div>
+
+                <div class="form-group">
+                    <label for="idea-description">Brief Idea Description *</label>
+                    <textarea id="idea-description" rows="4" required placeholder="Describe your project idea in 2-3 sentences..."></textarea>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 0;">
+                        <input type="checkbox" id="pre-approved" style="width: 20px; height: 20px; cursor: pointer;">
+                        <div>
+                            <strong>Already approved by OCTO leadership</strong>
+                            <div style="font-size: 0.9rem; color: var(--rh-gray-mid); margin-top: 4px;">
+                                Skip IdeaBot evaluation and go directly to ProtoBot
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="button button-secondary" onclick="closeNewIdeaModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="button button-primary" id="submit-idea-btn">
+                        Start IdeaBot Interview →
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Prototype Modal -->
+<div id="quick-prototype-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>⚡ Quick Prototype</h2>
+            <button class="modal-close" onclick="closeQuickPrototypeModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 24px; color: var(--rh-gray-mid);">
+                Skip the IdeaBot approval process and jump straight to building your prototype.
+            </p>
+
+            <form id="quick-prototype-form">
+                <div class="form-group">
+                    <label for="quick-project-name">Project Name *</label>
+                    <input type="text" id="quick-project-name" required placeholder="My Prototype">
+                </div>
+
+                <div class="form-group">
+                    <label for="quick-description">What are you building? *</label>
+                    <textarea id="quick-description" rows="4" required placeholder="Describe what you want to prototype..."></textarea>
+                </div>
+
+                <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" class="button button-secondary" onclick="closeQuickPrototypeModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="button button-primary">
+                        Start Building →
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: var(--rh-white);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--rh-gray-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--rh-black);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--rh-gray-mid);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--rh-black);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--rh-black);
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-text);
+    font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--rh-red);
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+</style>
+
+<script>
+function openNewIdeaModal() {
+    document.getElementById('new-idea-modal').style.display = 'flex';
+}
+
+function closeNewIdeaModal() {
+    document.getElementById('new-idea-modal').style.display = 'none';
+    document.getElementById('new-idea-form').reset();
+    // Reset button text
+    document.getElementById('submit-idea-btn').textContent = 'Start IdeaBot Interview →';
+}
+
+// Close modal on background click
+document.getElementById('new-idea-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeNewIdeaModal();
+    }
+});
+
+// Update button text when pre-approved checkbox changes
+document.getElementById('pre-approved')?.addEventListener('change', function(e) {
+    const submitBtn = document.getElementById('submit-idea-btn');
+    if (e.target.checked) {
+        submitBtn.textContent = 'Create Pre-Approved Project →';
+    } else {
+        submitBtn.textContent = 'Start IdeaBot Interview →';
+    }
+});
+
+// Handle form submission
+document.getElementById('new-idea-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const pitcherName = document.getElementById('pitcher-name').value.trim();
+    const projectName = document.getElementById('project-name').value.trim();
+    const ideaDescription = document.getElementById('idea-description').value.trim();
+    const preApproved = document.getElementById('pre-approved').checked;
+
+    if (!pitcherName || !projectName || !ideaDescription) {
+        notify.error('Please fill in all required fields');
+        return;
+    }
+
+    // Disable submit button
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating project...';
+
+    try {
+        const response = await fetch('/api/projects/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                pitcher_name: pitcherName,
+                project_name: projectName,
+                idea_description: ideaDescription,
+                pre_approved: preApproved
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to create project');
+        }
+
+        const data = await response.json();
+
+        // Always redirect to IdeaBot to collect questionnaire data
+        if (preApproved) {
+            notify.success('Pre-approved project created! Complete the questionnaire to continue.');
+        }
+        window.location.href = `/ideabot/${data.project_id}`;
+
+    } catch (error) {
+        console.error('Error creating project:', error);
+        notify.error('Failed to create project: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+});
+
+// ============================================================================
+// Quick Prototype Modal
+// ============================================================================
+
+function openQuickPrototypeModal() {
+    document.getElementById('quick-prototype-modal').style.display = 'flex';
+}
+
+function closeQuickPrototypeModal() {
+    document.getElementById('quick-prototype-modal').style.display = 'none';
+    document.getElementById('quick-prototype-form').reset();
+}
+
+// Close modal on background click
+document.getElementById('quick-prototype-modal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeQuickPrototypeModal();
+    }
+});
+
+// Handle form submission
+document.getElementById('quick-prototype-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const projectName = document.getElementById('quick-project-name').value.trim();
+    const description = document.getElementById('quick-description').value.trim();
+
+    if (!projectName || !description) {
+        notify.error('Please fill in all required fields');
+        return;
+    }
+
+    // Disable submit button
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating prototype...';
+
+    try {
+        const response = await fetch('/api/projects/quick-prototype', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_name: projectName,
+                description: description
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to create prototype');
+        }
+
+        const data = await response.json();
+
+        // Success! Redirect to QuickProto
+        window.location.href = `/quickproto/${data.project_id}`;
+
+    } catch (error) {
+        console.error('Error creating prototype:', error);
+        notify.error('Failed to create prototype: ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+});
+</script>
+
+{% endblock %}
+

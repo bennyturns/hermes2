@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: hermes-simulation
+  namespace: hermes-demo
+  labels:
+    app: hermes-simulation
+spec:
+  to:
+    kind: Service
+    name: hermes-simulation
+    weight: 100
+  port:
+    targetPort: 8000
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

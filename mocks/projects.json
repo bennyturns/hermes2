@@ -1,0 +1,30 @@
+[
+  {
+    "id": "vllm-cpu",
+    "name": "vLLM CPU Platform",
+    "lead": "Maryam Tahhan",
+    "strategic_priority": "AI Inference Acceleration",
+    "catcher_org": "AI Engineering",
+    "catcher_product": "Red Hat Inference Server",
+    "catcher_pm": "Harshal Ghodmare",
+    "catcher_em": "Sudhir Dharanendraiah",
+    "catcher_tl": "Joseph Groenenboom",
+    "slack_channel": "#ai-inference",
+    "ideabot_status": "approved",
+    "protobot_status": "not_started"
+  },
+  {
+    "id": "slinky",
+    "name": "Slinky - Service Mesh Observability",
+    "lead": "Heidi Dempsey",
+    "strategic_priority": "Cloud Native Observability",
+    "catcher_org": "Service Mesh Engineering",
+    "catcher_product": "OpenShift Service Mesh",
+    "catcher_pm": "",
+    "catcher_em": "",
+    "catcher_tl": "",
+    "slack_channel": "#service-mesh",
+    "ideabot_status": "in_progress",
+    "protobot_status": "n/a"
+  }
+]

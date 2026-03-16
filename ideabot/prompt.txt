@@ -1,0 +1,94 @@
+Red Hat is an enterprise software company with an open source development model. Our organization is the Office of the CTO, which is a division inside Global Engineering in Red Hat. Review the octo-definition.md file in the repository root directory for a full description of the organization.
+
+The Emerging Technologies team's role is to identify highly strategic technologies that are emerging that are not currently on our product roadmaps, evaluate them for suitability and develop them to the point that they can be graduated into our product. 
+
+Our process follows three key steps. Ideas for new emerging technologies to work on are contributed and evaluated. Assuming they are successful in the evaluation process, they then move onto prototyping and assuming the prototype is deemed to be successful, then we graduate the prototype from the emerging technologies team into the product team who will take it and either create a new product from it or add it as a feature in an existing product and be responsible for lifecycle maintenance. 
+
+We are moving to an agentic operational model by incorporating three specific agents:
+IdeaBot: This evaluates new ideas that are proposed
+ProtoBot: This takes the ideas that have been approved and creates a prototype to embody the idea.
+TransferBot: This takes the prototypes that have been approved and developed and transfers ownership of the software and process artifacts to another team that will be responsible for lifecycle maintenance.
+
+All three agents would contribute information to the same dashboard that we can use for prioritization, tracking progress and communicating with our stakeholders.
+
+Dashboard
+
+An example of the dashboard schema with two example in-flight projects is provided below:
+
+ID
+Project
+Strategic Priority
+Lead
+Catcher
+Organization
+Product
+Catcher Eng Mgr
+Catcher Prod Mgr
+Slack
+IdeaBot Prompt
+ProtoBot prompt
+TransferBot prompt
+1
+vllm-cpu
+Inference Platform
+Maryam Tahhan
+AI Engineering
+Red Hat Inference Server
+Taneem Ibrahim
+Erwan Gallen
+#forum-accelerating-ai
+Link
+Link
+Link
+2
+Slinky
+Inference Platform
+Heidi Dempsey
+AI Engineering
+TBD
+TBD
+Tushar Katarki
+#forum-slurm
+Link
+Link
+N/A
+
+Provide a way to edit the fields in the dashboard if any of the information needs to change. 
+
+
+IdeaBot
+
+IdeaBot will provide a chatbot user interface for submission of new ideas. It will initially present the user with a form where they will need to provide compelling answers to a series of questions. Once the form has been submitted, the application will analyze the responses and based on its knowledge of our organization's goals and the Red Hat addressable market, will ask a series of follow up questions in order to make a decision on whether our organization should proceed with the idea or not. The form will ask the following questions:
+
+What is your name?
+What is the idea? 
+What is the project name for your idea?
+Why do you think this is relevant to Red Hat’s current or future addressable market?
+Does this idea contribute towards an existing strategic priority for OCTO or Red Hat?
+Which product in the Red Hat Portfolio would these new capabilities land (the catcher)?
+Who is the catching Product Manager?
+What is the catching Engineering Manager?
+Who is the catching engineer with the most influence on the design approach that needs to be taken?
+Have you checked with members of the relevant catching engineering team and business unit that they are not already working on this idea?
+Have you had a discussion on the technical approach to take with the relevant catchers technical leads to address the problem or opportunity motivating the idea?
+
+Once the responses are captured. The application will evaluate the answers and decide whether to approve or deny moving forward with the idea using its ability to reason with the context it has. 
+
+Failure criteria: the responses indicate that the idea is not strategically important to Red Hat or that it is already being worked on in Red Hat.
+Our strategic focus is defined in the file called strategic-focus.txt in the repository root directory. Use that in your decision making criteria.
+
+If the idea is successful, add it as a new row to the dashboard using information captured during the analysis process. Use one of the selected documented strategic-focus areas for the input in the strategic area field in the row.
+
+If the idea is unsuccessful, capture the form information and create a separate dashboard for unsuccessful ideas.
+
+Execution:
+
+Build the IdeaBot agent and Dashboard as a working application. Leave ProtoBot and TransferBot for later. 
+
+Use Python with FastAPI, a simple HTML/JS/CSS frontend, SQLite for persistence, and the Claude API for evaluation.
+
+We access Claude through Google Cloud Vertex AI (not the direct Anthropic API). Use AnthropicVertex from the anthropic SDK. Project ID: itpc-gcp-octo-eng-claude, region: us-east5. The model name format for Vertex uses @ not - before the date, e.g. claude-sonnet-4@20250514.
+
+The evaluator should load octo-definition.md and strategic-focus.txt from the repository root directory as its context for understanding OCTO's mission and strategic focus areas and evaluating ideas against it.
+
+Install dependencies, create the .env file, start the server, and confirm all endpoints work. Test the form submission using the Q&A data in ideabot-test.txt. Make sure the app starts and the submission works end-to-end before telling me it's done.

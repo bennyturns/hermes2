@@ -1,0 +1,569 @@
+{% extends "base.html" %}
+
+{% block title %}IdeaBot - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 16px;">
+        <a href="/" style="color: var(--rh-gray-mid);">← Back to Dashboard</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">IdeaBot - Idea Evaluation</h1>
+            <p class="card-subtitle">{{ project.name }}</p>
+        </div>
+
+        <div class="card-body">
+            {% if ideabot_data.get('answers', {}).get('pre_approved') %}
+            <div style="padding: 16px; background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%); color: white; border-radius: var(--border-radius-md); margin-bottom: 24px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 24px;">★</div>
+                    <div>
+                        <strong>Pre-Approved Project</strong>
+                        <div style="opacity: 0.9; margin-top: 4px;">This project has been pre-approved by OCTO leadership. Complete the questionnaire to proceed to ProtoBot.</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <p class="mb-lg">Answer the following questions to help IdeaBot evaluate your project idea. Click "Next" to go through questions one by one, or "Show All" to see everything at once.</p>
+
+            <!-- Progress Indicator -->
+            <div id="progress-indicator" style="padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-md); margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>Progress:</strong> <span id="progress-text">0 of 11 questions answered</span>
+                    </div>
+                    <div style="flex-grow: 1; max-width: 400px; margin: 0 24px;">
+                        <div style="background: var(--rh-gray-light); height: 8px; border-radius: 4px; overflow: hidden;">
+                            <div id="progress-bar" style="background: var(--rh-red); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ready to Submit Banner (Normal) -->
+            <div id="ready-banner" style="display: none; padding: 20px; background: linear-gradient(135deg, var(--rh-green) 0%, #2d6b27 100%); color: white; border-radius: var(--border-radius-md); margin-bottom: 24px; box-shadow: var(--shadow-lg);">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="font-size: 48px;">✓</div>
+                    <div style="flex-grow: 1;">
+                        <h3 style="margin: 0 0 8px 0; color: white;">All Questions Answered!</h3>
+                        <p style="margin: 0; opacity: 0.9;">You've completed the IdeaBot questionnaire. Click below to generate your evaluation.</p>
+                    </div>
+                    <button class="button" onclick="generateEvaluation()" style="background: white; color: var(--rh-green); font-weight: 600; padding: 12px 24px;">
+                        Generate Evaluation →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ready to Submit Banner (Pre-Approved) -->
+            <div id="ready-banner-preapproved" style="display: none; padding: 20px; background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%); color: white; border-radius: var(--border-radius-md); margin-bottom: 24px; box-shadow: var(--shadow-lg);">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="font-size: 48px;">★</div>
+                    <div style="flex-grow: 1;">
+                        <h3 style="margin: 0 0 8px 0; color: white;">All Questions Answered!</h3>
+                        <p style="margin: 0; opacity: 0.9;">This project is pre-approved by OCTO leadership. Submit your answers to proceed to ProtoBot.</p>
+                    </div>
+                    <button class="button" onclick="submitPreApproved()" style="background: white; color: var(--rh-blue); font-weight: 600; padding: 12px 24px;">
+                        Submit & Continue to ProtoBot →
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+                <button class="button button-primary" onclick="nextQuestion()">Next</button>
+                <button class="button button-secondary" onclick="showAll()">Show All</button>
+                <button class="button button-secondary" onclick="saveAnswers()" style="margin-left: auto;">
+                    Save Progress
+                </button>
+            </div>
+
+            <div id="status-message" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+
+            <!-- Questions -->
+            <div id="questions-container">
+                <!-- Question 1 -->
+                <div class="question-block" data-question="1" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">1. What is your name?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Enter your name..." data-answer-key="q1_name">{{ ideabot_data.answers.q1_name }}</div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="question-block" data-question="2" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">2. What is the idea?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Describe your project idea..." data-answer-key="q2_idea">{% if ideabot_data['answers'].get('q2_idea') %}{{ ideabot_data['answers']['q2_idea'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 3 -->
+                <div class="question-block" data-question="3" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">3. What is the project name?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Enter project name..." data-answer-key="q3_project_name">{% if ideabot_data['answers'].get('q3_project_name') %}{{ ideabot_data['answers']['q3_project_name'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 4 -->
+                <div class="question-block" data-question="4" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">4. Why is this relevant to Red Hat's market?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Explain market relevance..." data-answer-key="q4_market_relevance">{% if ideabot_data['answers'].get('q4_market_relevance') %}{{ ideabot_data['answers']['q4_market_relevance'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 5 -->
+                <div class="question-block" data-question="5" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">5. Does this contribute to a strategic priority?</h3>
+                    <p style="color: var(--rh-gray-mid); margin-bottom: 12px; font-size: 0.9rem;">
+                        Red Hat 2026 Strategic Priorities:<br>
+                        <strong>1.</strong> AI Inference Acceleration &nbsp;|&nbsp;
+                        <strong>2.</strong> Edge Computing & Distributed Systems &nbsp;|&nbsp;
+                        <strong>3.</strong> Cloud Native Observability &nbsp;|&nbsp;
+                        <strong>4.</strong> Secure Software Supply Chain &nbsp;|&nbsp;
+                        <strong>5.</strong> Developer Experience & Productivity
+                    </p>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Which strategic priority does this align with?" data-answer-key="q5_strategic_priority">{% if ideabot_data['answers'].get('q5_strategic_priority') %}{{ ideabot_data['answers']['q5_strategic_priority'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 6 -->
+                <div class="question-block" data-question="6" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">6. Which product will receive these capabilities (catcher)?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Enter catcher product..." data-answer-key="q6_catcher_product">{% if ideabot_data['answers'].get('q6_catcher_product') %}{{ ideabot_data['answers']['q6_catcher_product'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 7 -->
+                <div class="question-block" data-question="7" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">7. Who is the catching Product Manager?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Enter PM name..." data-answer-key="q7_catcher_pm">{% if ideabot_data['answers'].get('q7_catcher_pm') %}{{ ideabot_data['answers']['q7_catcher_pm'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 8 -->
+                <div class="question-block" data-question="8" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">8. Who is the catching Engineering Manager?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Enter EM name..." data-answer-key="q8_catcher_em">{% if ideabot_data['answers'].get('q8_catcher_em') %}{{ ideabot_data['answers']['q8_catcher_em'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 9 -->
+                <div class="question-block" data-question="9" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">9. Who is the catching technical lead?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Enter technical lead name..." data-answer-key="q9_catcher_tl">{% if ideabot_data['answers'].get('q9_catcher_tl') %}{{ ideabot_data['answers']['q9_catcher_tl'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 10 -->
+                <div class="question-block" data-question="10" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">10. Have you checked that catchers aren't already working on this?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Confirm existing work check..." data-answer-key="q10_existing_work">{% if ideabot_data['answers'].get('q10_existing_work') %}{{ ideabot_data['answers']['q10_existing_work'] }}{% endif %}</div>
+                </div>
+
+                <!-- Question 11 -->
+                <div class="question-block" data-question="11" style="display: none;">
+                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">11. Have you discussed technical approach with catching TL?</h3>
+                    <div class="answer-field" contenteditable="true" data-placeholder="Describe technical approach discussion..." data-answer-key="q11_technical_approach">{% if ideabot_data['answers'].get('q11_technical_approach') %}{{ ideabot_data['answers']['q11_technical_approach'] }}{% endif %}</div>
+                </div>
+            </div>
+
+            <!-- Evaluation Card (shown after all questions) -->
+            {% if ideabot_data.get('evaluation') %}
+            <div id="evaluation-card" class="card mt-xl" style="display: none; border-left: 4px solid var(--rh-green);">
+                <div class="card-header">
+                    <h2 class="card-title">IdeaBot Evaluation</h2>
+                    <span class="badge badge-approved">{{ ideabot_data['evaluation']['decision']|title }}</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Decision:</strong> {{ ideabot_data['evaluation']['decision']|title }}</p>
+                    <p class="mt-md"><strong>Rationale:</strong></p>
+                    <p>{{ ideabot_data['evaluation']['rationale'] }}</p>
+
+                    <div class="mt-lg">
+                        <button class="button button-primary" onclick="approveIdea()">
+                            Approve & Enable ProtoBot
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.question-block {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rh-gray-lighter);
+}
+
+.question-block:last-child {
+    border-bottom: none;
+}
+
+.answer-field {
+    min-height: 100px;
+    padding: 12px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--rh-white);
+    cursor: text;
+}
+
+.answer-field:focus {
+    outline: none;
+    border-color: var(--rh-red);
+}
+
+.answer-field:empty:before {
+    content: attr(data-placeholder);
+    color: var(--rh-gray-mid);
+    font-style: italic;
+}
+</style>
+
+<script>
+let currentQuestion = 0;
+const totalQuestions = 11;
+const projectId = '{{ project.id }}';
+const isPreApproved = {% if ideabot_data.get('answers', {}).get('pre_approved') %}true{% else %}false{% endif %};
+
+function showQuestion(num) {
+    const questions = document.querySelectorAll('.question-block');
+    questions.forEach((q, idx) => {
+        q.style.display = (idx + 1 === num) ? 'block' : 'none';
+    });
+    currentQuestion = num;
+}
+
+function nextQuestion() {
+    if (currentQuestion < totalQuestions) {
+        showQuestion(currentQuestion + 1);
+    }
+
+    // Show evaluation card after last question
+    if (currentQuestion === totalQuestions) {
+        const evalCard = document.getElementById('evaluation-card');
+        if (evalCard) {
+            evalCard.style.display = 'block';
+        }
+    }
+}
+
+function showAll() {
+    const questions = document.querySelectorAll('.question-block');
+    questions.forEach(q => {
+        q.style.display = 'block';
+    });
+    currentQuestion = totalQuestions;
+
+    // Update progress when showing all
+    updateProgress();
+
+    // Show evaluation card
+    const evalCard = document.getElementById('evaluation-card');
+    if (evalCard) {
+        evalCard.style.display = 'block';
+    }
+}
+
+function showStatus(message, type = 'info') {
+    const statusEl = document.getElementById('status-message');
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        statusEl.style.display = 'none';
+    }, 5000);
+}
+
+function collectAnswers() {
+    const answers = {};
+    const answerFields = document.querySelectorAll('.answer-field');
+
+    answerFields.forEach(field => {
+        const key = field.getAttribute('data-answer-key');
+        const value = field.textContent.trim();
+        if (value) {
+            answers[key] = value;
+        }
+    });
+
+    // Include pre_approved flag if set
+    if (isPreApproved) {
+        answers.pre_approved = true;
+    }
+
+    return answers;
+}
+
+function updateProgress() {
+    const answers = collectAnswers();
+    // Don't count pre_approved in the question count
+    const questionAnswers = Object.keys(answers).filter(k => k !== 'pre_approved');
+    const answeredCount = questionAnswers.length;
+    const progressPercent = Math.round((answeredCount / totalQuestions) * 100);
+
+    // Update progress text and bar
+    document.getElementById('progress-text').textContent = `${answeredCount} of ${totalQuestions} questions answered`;
+    document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+    // Show appropriate banner when all questions answered
+    const readyBanner = document.getElementById('ready-banner');
+    const readyBannerPreApproved = document.getElementById('ready-banner-preapproved');
+
+    if (answeredCount === totalQuestions) {
+        if (isPreApproved) {
+            readyBanner.style.display = 'none';
+            readyBannerPreApproved.style.display = 'block';
+        } else {
+            readyBanner.style.display = 'block';
+            readyBannerPreApproved.style.display = 'none';
+        }
+    } else {
+        readyBanner.style.display = 'none';
+        readyBannerPreApproved.style.display = 'none';
+    }
+}
+
+async function saveAnswers() {
+    const answers = collectAnswers();
+
+    try {
+        const response = await fetch('/api/ideabot/save', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                answers: answers
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to save answers');
+        }
+
+        notify.success('Answers saved successfully');
+        updateProgress();
+    } catch (error) {
+        console.error('Error saving answers:', error);
+        notify.error('Failed to save answers: ' + error.message);
+    }
+}
+
+async function generateEvaluation() {
+    // Auto-save answers before generating evaluation
+    await saveAnswers();
+
+    const progress = aiProgress.show('Generating IdeaBot Evaluation', 10);
+    progress.updateStatus('Analyzing your answers...');
+
+    try {
+        const response = await fetch('/api/ideabot/evaluate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateStatus('Processing AI response...');
+        progress.updateProgress(75);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate evaluation');
+        }
+
+        const data = await response.json();
+
+        // Update answers in UI if extraction found new ones
+        if (data.answers) {
+            Object.keys(data.answers).forEach(key => {
+                const field = document.querySelector(`[data-answer-key="${key}"]`);
+                if (field && data.answers[key]) {
+                    field.textContent = data.answers[key];
+                }
+            });
+        }
+
+        // Display evaluation
+        if (data.evaluation) {
+            displayEvaluation(data.evaluation);
+            // Hide ready banner after evaluation is generated
+            document.getElementById('ready-banner').style.display = 'none';
+        }
+
+        progress.updateStatus('Evaluation complete!');
+        progress.updateProgress(100);
+        progress.complete();
+        notify.success('Evaluation generated successfully!');
+    } catch (error) {
+        console.error('Error generating evaluation:', error);
+        progress.cancel();
+        notify.error('Failed to generate evaluation: ' + error.message);
+    }
+}
+
+function displayEvaluation(evaluation) {
+    let evalCard = document.getElementById('evaluation-card');
+
+    if (!evalCard) {
+        // Create evaluation card
+        evalCard = document.createElement('div');
+        evalCard.id = 'evaluation-card';
+        evalCard.className = 'card mt-xl';
+        evalCard.style.borderLeft = '4px solid var(--rh-green)';
+
+        document.querySelector('.card-body').appendChild(evalCard);
+    }
+
+    const badgeClass = evaluation.decision === 'approved' ? 'badge-approved' : 'badge-rejected';
+    const badgeText = evaluation.decision.charAt(0).toUpperCase() + evaluation.decision.slice(1);
+
+    evalCard.innerHTML = `
+        <div class="card-header">
+            <h2 class="card-title">IdeaBot Evaluation</h2>
+            <span class="badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="card-body">
+            <p><strong>Decision:</strong> ${badgeText}</p>
+            <p class="mt-md"><strong>Rationale:</strong></p>
+            <p>${evaluation.rationale}</p>
+
+            ${evaluation.decision === 'approved' ? `
+            <div class="mt-lg">
+                <button class="button button-primary" onclick="approveIdea()">
+                    Approve & Enable ProtoBot
+                </button>
+            </div>
+            ` : ''}
+        </div>
+    `;
+
+    evalCard.style.display = 'block';
+
+    // Scroll to evaluation
+    evalCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitPreApproved() {
+    // First save the answers
+    await saveAnswers();
+
+    const loadingToast = notify.loading('Submitting pre-approved project...');
+
+    try {
+        const response = await fetch('/api/ideabot/approve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                approved_by: 'OCTO Leadership (Pre-Approved)',
+                skip_evaluation: true
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to submit project');
+        }
+
+        const data = await response.json();
+
+        loadingToast.dismiss();
+        notify.success('Answers submitted! Redirecting to ProtoBot...');
+
+        // Redirect to ProtoBot after short delay
+        setTimeout(() => {
+            window.location.href = data.redirect_url || `/protobot/${projectId}`;
+        }, 1500);
+
+    } catch (error) {
+        console.error('Error submitting project:', error);
+        loadingToast.dismiss();
+        notify.error('Failed to submit project: ' + error.message);
+    }
+}
+
+async function approveIdea() {
+    if (!confirm('Approve this idea and enable ProtoBot execution?')) {
+        return;
+    }
+
+    const loadingToast = notify.loading('Approving project...');
+
+    try {
+        const response = await fetch('/api/ideabot/approve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                approved_by: 'Human-in-Loop'  // In production, get from auth
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to approve project');
+        }
+
+        const data = await response.json();
+
+        loadingToast.dismiss();
+        notify.success('Project approved! Redirecting to ProtoBot...');
+
+        // Redirect to ProtoBot after short delay
+        setTimeout(() => {
+            window.location.href = data.redirect_url || `/protobot/${projectId}`;
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error approving project:', error);
+        loadingToast.dismiss();
+        notify.error('Failed to approve project: ' + error.message);
+    }
+}
+
+// Auto-save on blur (when user finishes editing an answer)
+document.addEventListener('DOMContentLoaded', () => {
+    showQuestion(1);
+    updateProgress();  // Initial progress update
+
+    // Attach blur event listeners to answer fields
+    const answerFields = document.querySelectorAll('.answer-field');
+    answerFields.forEach(field => {
+        field.addEventListener('blur', () => {
+            // Debounced auto-save
+            clearTimeout(field.saveTimeout);
+            field.saveTimeout = setTimeout(() => {
+                saveAnswers();
+            }, 1000);
+        });
+
+        // Update progress on input (real-time feedback)
+        field.addEventListener('input', () => {
+            clearTimeout(field.progressTimeout);
+            field.progressTimeout = setTimeout(() => {
+                updateProgress();
+            }, 500);
+        });
+    });
+});
+</script>
+
+{% endblock %}

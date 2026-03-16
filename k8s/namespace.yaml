@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hermes
+  labels:
+    app: hermes
+    team: octo
+    environment: production
+  annotations:
+    openshift.io/display-name: "Hermes - OCTO Playbook System"
+    openshift.io/description: "AI-powered prototype generation and technology transfer"

@@ -1,0 +1,55 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: hermes-allow-ingress
+  namespace: hermes
+  labels:
+    app: hermes
+spec:
+  podSelector:
+    matchLabels:
+      app: hermes
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from OpenShift router
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          network.openshift.io/policy-group: ingress
+    ports:
+    - protocol: TCP
+      port: 8000
+  # Allow ingress from same namespace (for pod-to-pod communication)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: hermes
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  # Allow DNS resolution
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: openshift-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow egress to Vertex AI (Google Cloud)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+  # Allow egress to internal services
+  - to:
+    - podSelector:
+        matchLabels:
+          app: hermes
+    ports:
+    - protocol: TCP
+      port: 8000

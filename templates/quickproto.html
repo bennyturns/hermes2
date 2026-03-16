@@ -1,0 +1,1187 @@
+{% extends "base.html" %}
+
+{% block title %}QuickProto - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 16px;">
+        <a href="/" style="color: var(--rh-gray-mid);">← Back to Dashboard</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">⚡ QuickProto - Speckit Workflow</h1>
+            <p class="card-subtitle">{{ project.name }}</p>
+        </div>
+
+        <div class="card-body">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    {% for i in range(1, 5) %}
+                    {% set step_completed = false %}
+                    {% if i == 1 and quickproto_data.step1_spec %}
+                        {% set step_completed = true %}
+                    {% elif i == 2 and quickproto_data.step2_tasks %}
+                        {% set step_completed = true %}
+                    {% elif i == 3 and quickproto_data.step3_code_artifacts %}
+                        {% set step_completed = true %}
+                    {% elif i == 4 and quickproto_data.step4_readme %}
+                        {% set step_completed = true %}
+                    {% endif %}
+
+                    <div class="progress-step {% if step_completed %}completed{% elif i == quickproto_data.current_step %}active{% else %}pending{% endif %} clickable" onclick="navigateToStep({{ i }})">
+                        <div class="progress-number">{{ i }}</div>
+                        <div class="progress-label">
+                            {% if i == 1 %}Specification
+                            {% elif i == 2 %}Design
+                            {% elif i == 3 %}Code
+                            {% elif i == 4 %}Export
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Step Navigation -->
+            <div style="display: flex; justify-content: space-between; margin-top: 24px; padding: 16px; background-color: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                <button class="button button-secondary" onclick="navigateToStep({{ quickproto_data.current_step - 1 }})" {% if quickproto_data.current_step <= 1 %}disabled{% endif %}>
+                    ← Previous
+                </button>
+                <div style="color: var(--rh-gray-mid); font-weight: 500;">
+                    Step {{ quickproto_data.current_step }} of 4
+                </div>
+                <button class="button button-secondary" onclick="navigateToStep({{ quickproto_data.current_step + 1 }})" {% if quickproto_data.current_step >= 4 %}disabled{% endif %}>
+                    Next →
+                </button>
+            </div>
+
+            <!-- Main Content -->
+            <div style="margin-top: 32px;">
+
+                <!-- Step 1: Specification -->
+                {% if quickproto_data.current_step == 1 %}
+                <div class="step-content">
+                    <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 1: Specification Generation</h2>
+                    <p class="mb-lg">Generate spec.md and plan.md based on your project description.</p>
+
+                    <div class="form-group">
+                        <label>What do you want to build?</label>
+                        <textarea id="description-input" rows="6" placeholder="Describe your project..."{% if quickproto_data.step1_spec %}disabled{% endif %}>{{ quickproto_data.description or '' }}</textarea>
+                    </div>
+
+                    {% if quickproto_data.step1_spec %}
+                    <div class="artifact-viewer mb-lg">
+                        <h3>spec.md <span style="font-size: 0.85rem; color: var(--rh-gray-mid); font-weight: normal;">(editable)</span></h3>
+                        <textarea id="spec-content" class="editable-content" rows="20">{{ quickproto_data.step1_spec | replace('\\n', '\n') }}</textarea>
+                    </div>
+
+                    <div class="artifact-viewer mb-lg">
+                        <h3>plan.md <span style="font-size: 0.85rem; color: var(--rh-gray-mid); font-weight: normal;">(editable)</span></h3>
+                        <textarea id="plan-content" class="editable-content" rows="20">{{ quickproto_data.step1_plan | replace('\\n', '\n') }}</textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px;">
+                        <button class="button button-secondary" onclick="saveSpec()">
+                            💾 Save Changes
+                        </button>
+                        <button class="button button-secondary" onclick="regenerateSpec()">
+                            🔄 Regenerate Spec & Plan
+                        </button>
+                        <button class="button button-primary" onclick="proceedToDesign()">
+                            Proceed to Design →
+                        </button>
+                    </div>
+                    {% else %}
+                    <button class="button button-primary" onclick="generateSpec()">
+                        Generate Specification
+                    </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Step 2: Design & Planning -->
+                {% if quickproto_data.current_step == 2 %}
+                <div class="step-content">
+                    <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 2: Design & Planning</h2>
+                    <p class="mb-lg">Generate detailed task breakdown, data model, and research.</p>
+
+                    {% if quickproto_data.step2_tasks %}
+                    <div class="artifact-viewer mb-lg">
+                        <h3>tasks.md <span style="font-size: 0.85rem; color: var(--rh-gray-mid); font-weight: normal;">(editable)</span></h3>
+                        <textarea id="tasks-content" class="editable-content" rows="20">{{ quickproto_data.step2_tasks | replace('\\n', '\n') }}</textarea>
+                    </div>
+
+                    <div class="artifact-viewer mb-lg">
+                        <h3>data-model.md <span style="font-size: 0.85rem; color: var(--rh-gray-mid); font-weight: normal;">(editable)</span></h3>
+                        <textarea id="data-model-content" class="editable-content" rows="20">{{ quickproto_data.step2_data_model | replace('\\n', '\n') }}</textarea>
+                    </div>
+
+                    <div class="artifact-viewer mb-lg">
+                        <h3>research.md <span style="font-size: 0.85rem; color: var(--rh-gray-mid); font-weight: normal;">(editable)</span></h3>
+                        <textarea id="research-content" class="editable-content" rows="20">{{ quickproto_data.step2_research | replace('\\n', '\n') }}</textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px;">
+                        <button class="button button-secondary" onclick="saveDesign()">
+                            💾 Save Changes
+                        </button>
+                        <button class="button button-secondary" onclick="regenerateDesign()">
+                            🔄 Regenerate Design Docs
+                        </button>
+                        <button class="button button-primary" onclick="proceedToCode()">
+                            Proceed to Code Generation →
+                        </button>
+                    </div>
+                    {% else %}
+                    <button class="button button-primary" onclick="generateDesign()">
+                        Generate Design Documents
+                    </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Step 3: Code Generation -->
+                {% if quickproto_data.current_step == 3 %}
+                <div class="step-content">
+                    <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 3: Code Generation</h2>
+                    <p class="mb-lg">Generate code based on tasks.md (P1 → P2 → P3 priorities).</p>
+
+                    {% if quickproto_data.step3_code_artifacts %}
+                    <div class="artifact-list mb-lg">
+                        <h3>Generated Files ({{ quickproto_data.step3_code_artifacts|length }})</h3>
+                        {% for artifact in quickproto_data.step3_code_artifacts %}
+                        <div class="artifact-item" onclick="viewArtifact({{ loop.index0 }})">
+                            <span class="artifact-name">{{ artifact.filename }}</span>
+                            <span class="artifact-type">{{ artifact.type }}</span>
+                            <button class="button button-secondary" style="font-size: 0.8rem; padding: 4px 8px;" onclick="event.stopPropagation(); downloadFile({{ loop.index0 }})">
+                                ⬇️ Download
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="button button-secondary" onclick="saveAllCode()">
+                            💾 Save All Changes
+                        </button>
+                        <button class="button button-secondary" onclick="regenerateCode('P1')">
+                            🔄 Regenerate P1
+                        </button>
+                        <button class="button button-secondary" onclick="regenerateCode('P2')">
+                            🔄 Generate P2
+                        </button>
+                        <button class="button button-secondary" onclick="regenerateCode('P3')">
+                            🔄 Generate P3
+                        </button>
+                        <button class="button button-primary" onclick="proceedToExport()">
+                            Proceed to Export →
+                        </button>
+                    </div>
+                    {% else %}
+                    <button class="button button-primary" onclick="generateCode()">
+                        Generate Code (P1)
+                    </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Step 4: Documentation & Export -->
+                {% if quickproto_data.current_step == 4 %}
+                <div class="step-content">
+                    <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 4: Documentation & Export</h2>
+                    <p class="mb-lg">Generate documentation and export your prototype.</p>
+
+                    {% if quickproto_data.step4_readme %}
+                    <div class="artifact-viewer mb-lg">
+                        <h3>README.md <span style="font-size: 0.85rem; color: var(--rh-gray-mid); font-weight: normal;">(editable)</span></h3>
+                        <textarea id="readme-content" class="editable-content" rows="20">{{ quickproto_data.step4_readme | replace('\\n', '\n') }}</textarea>
+                    </div>
+
+                    <div class="artifact-viewer mb-lg">
+                        <h3>quickstart.md <span style="font-size: 0.85rem; color: var(--rh-gray-mid); font-weight: normal;">(editable)</span></h3>
+                        <textarea id="quickstart-content" class="editable-content" rows="20">{{ quickproto_data.step4_quickstart | replace('\\n', '\n') }}</textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <button class="button button-secondary" onclick="saveDocs()">
+                            💾 Save Changes
+                        </button>
+                        <button class="button button-secondary" onclick="regenerateDocs()">
+                            🔄 Regenerate Documentation
+                        </button>
+                    </div>
+
+                    <!-- Completion Banner -->
+                    <div class="completion-banner" style="margin-top: 24px; padding: 24px; border-radius: var(--border-radius-sm); border-left: 4px solid {% if quickproto_data.status == 'complete' %}var(--rh-green){% else %}var(--rh-orange){% endif %}; background-color: var(--rh-gray-lightest);">
+                        {% if quickproto_data.status == 'complete' %}
+                        <h3 style="color: var(--rh-green); margin-bottom: 12px;">🎉 QuickProto Complete!</h3>
+                        <p style="margin-bottom: 16px;">Your prototype has been generated and is ready to use.</p>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="button button-primary" onclick="downloadZip()">
+                                Download ZIP
+                            </button>
+                            <button class="button button-secondary" onclick="window.location.href='/'">
+                                Return to Dashboard
+                            </button>
+                        </div>
+                        {% else %}
+                        <h3 style="color: var(--rh-orange); margin-bottom: 12px;">⚠️ Ready to Complete</h3>
+                        <p style="margin-bottom: 16px;">
+                            All artifacts have been generated. Complete the workflow to finish.
+                        </p>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="button button-primary" onclick="downloadZip()">
+                                Download ZIP
+                            </button>
+                            <button class="button button-primary" onclick="completeWorkflow()">
+                                Complete Workflow ✓
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <button class="button button-primary" onclick="generateDocs()">
+                        Generate Documentation
+                    </button>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress-container {
+    margin-bottom: 24px;
+}
+
+.progress-bar {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.progress-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.progress-step.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.progress-step.clickable:hover {
+    transform: translateY(-2px);
+}
+
+.progress-step.clickable:hover .progress-number {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.progress-step.clickable:hover .progress-label {
+    color: var(--rh-red);
+}
+
+.progress-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+    border: 3px solid var(--rh-gray-light);
+    background-color: var(--rh-white);
+    color: var(--rh-gray-mid);
+}
+
+.progress-step.completed .progress-number {
+    background-color: var(--rh-green);
+    border-color: var(--rh-green);
+    color: var(--rh-white);
+}
+
+.progress-step.active .progress-number {
+    background-color: var(--rh-red);
+    border-color: var(--rh-red);
+    color: var(--rh-white);
+}
+
+.progress-label {
+    font-size: 0.85rem;
+    color: var(--rh-gray-mid);
+    text-align: center;
+}
+
+.progress-step.active .progress-label {
+    color: var(--rh-red);
+    font-weight: 600;
+}
+
+.step-content {
+    padding: 24px;
+    background-color: var(--rh-gray-lightest);
+    border-radius: var(--border-radius-md);
+}
+
+.artifact-viewer {
+    background-color: var(--rh-white);
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    padding: 16px;
+}
+
+.artifact-viewer h3 {
+    margin-bottom: 12px;
+    color: var(--rh-black);
+}
+
+.markdown-content {
+    background-color: var(--rh-gray-lightest);
+    padding: 12px;
+    border-radius: var(--border-radius-sm);
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.artifact-list {
+    background-color: var(--rh-white);
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    padding: 16px;
+}
+
+.artifact-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    background-color: var(--rh-gray-lightest);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.artifact-item:hover {
+    background-color: var(--rh-gray-light);
+}
+
+.artifact-name {
+    font-weight: 500;
+}
+
+.artifact-type {
+    color: var(--rh-gray-mid);
+    font-size: 0.85rem;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--rh-black);
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-text);
+    font-size: 1rem;
+    resize: vertical;
+}
+
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--rh-red);
+}
+
+.mb-lg {
+    margin-bottom: 24px;
+}
+
+.editable-content {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--rh-gray-lightest);
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 300px;
+}
+
+.editable-content:focus {
+    outline: none;
+    border-color: var(--rh-red);
+    background-color: var(--rh-white);
+}
+
+.spinner {
+    border: 3px solid var(--rh-gray-light);
+    border-top: 3px solid var(--rh-red);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 1s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-message {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f0f9ff;
+    border-left: 4px solid #3b82f6;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.loading-message strong {
+    color: #1e40af;
+}
+
+.loading-message .text-muted {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-top: 4px;
+}
+</style>
+
+<script>
+const projectId = '{{ project.id }}';
+
+// ============================================================================
+// Step Navigation
+// ============================================================================
+
+async function navigateToStep(stepNumber) {
+    if (stepNumber < 1 || stepNumber > 4) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/quickproto/navigate-step', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                step: stepNumber
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to navigate to step');
+        }
+
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Navigation error:', error);
+        notify.error('Failed to navigate to step. Please try again.');
+    }
+}
+
+// ============================================================================
+// Step 1: Specification
+// ============================================================================
+
+async function generateSpec() {
+    const description = document.getElementById('description-input').value.trim();
+
+    if (!description) {
+        notify.error('Please describe what you want to build');
+        return;
+    }
+
+    const btn = event.target;
+    btn.disabled = true;
+
+    const progress = aiProgress.show('Generating Specification', 20);
+    progress.updateStatus('AI is analyzing your description...');
+
+    try {
+        const response = await fetch('/api/quickproto/generate-spec', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                description: description
+            })
+        });
+
+        progress.updateStatus('Processing specification...');
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate specification');
+        }
+
+        progress.updateStatus('Specification generated!');
+        progress.complete();
+
+        // Reload after a brief delay
+        setTimeout(() => window.location.reload(), 500);
+
+    } catch (error) {
+        console.error('Error generating spec:', error);
+        progress.cancel();
+        notify.error('Failed to generate specification: ' + error.message);
+        btn.disabled = false;
+    }
+}
+
+async function proceedToDesign() {
+    await navigateToStep(2);
+}
+
+async function saveSpec() {
+    const specContent = document.getElementById('spec-content').value;
+    const planContent = document.getElementById('plan-content').value;
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '💾 Saving...';
+
+    try {
+        const response = await fetch('/api/quickproto/save-spec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                spec: specContent,
+                plan: planContent
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to save changes');
+        }
+
+        notify.success('Changes saved successfully');
+        btn.innerHTML = '✅ Saved!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error saving spec:', error);
+        notify.error('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+async function regenerateSpec() {
+    if (!confirm('Regenerate spec.md and plan.md?\n\nThis will overwrite the current specification and plan. Continue?')) {
+        return;
+    }
+
+    const description = document.getElementById('description-input').value.trim();
+    if (!description) {
+        notify.error('Cannot regenerate without a description');
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="display: inline-block; width: 16px; height: 16px; vertical-align: middle; margin-right: 8px;"></span> Regenerating...';
+
+    try {
+        const response = await fetch('/api/quickproto/generate-spec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                description: description
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to regenerate specification');
+        }
+
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Error regenerating spec:', error);
+        notify.error('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+// ============================================================================
+// Step 2: Design
+// ============================================================================
+
+async function generateDesign() {
+    const btn = event.target;
+    btn.disabled = true;
+
+    const progress = aiProgress.show('Generating Design Documents', 30);
+    progress.updateStatus('Creating tasks.md... (1/3)');
+
+    try {
+        const response = await fetch('/api/quickproto/generate-design', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateStatus('Processing all design documents... (3/3)');
+        progress.updateProgress(90);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate design');
+        }
+
+        progress.updateStatus('Design documents generated!');
+        progress.complete();
+
+        setTimeout(() => window.location.reload(), 500);
+
+    } catch (error) {
+        console.error('Error generating design:', error);
+        progress.cancel();
+        notify.error('Failed to generate design: ' + error.message);
+        btn.disabled = false;
+    }
+}
+
+async function proceedToCode() {
+    await navigateToStep(3);
+}
+
+async function saveDesign() {
+    const tasksContent = document.getElementById('tasks-content').value;
+    const dataModelContent = document.getElementById('data-model-content').value;
+    const researchContent = document.getElementById('research-content').value;
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '💾 Saving...';
+
+    try {
+        const response = await fetch('/api/quickproto/save-design', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                tasks: tasksContent,
+                data_model: dataModelContent,
+                research: researchContent
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to save changes');
+        }
+
+        notify.success('Changes saved successfully');
+        btn.innerHTML = '✅ Saved!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error saving design:', error);
+        notify.error('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+async function regenerateDesign() {
+    if (!confirm('Regenerate design documents?\n\nThis will overwrite tasks.md, data-model.md, and research.md. Continue?')) {
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="display: inline-block; width: 16px; height: 16px; vertical-align: middle; margin-right: 8px;"></span> Regenerating...';
+
+    try {
+        const response = await fetch('/api/quickproto/generate-design', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to regenerate design');
+        }
+
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Error regenerating design:', error);
+        notify.error('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+// ============================================================================
+// Step 3: Code
+// ============================================================================
+
+async function generateCode() {
+    const btn = event.target;
+    btn.disabled = true;
+
+    const progress = aiProgress.show('Generating P1 Code', 40);
+    progress.updateStatus('AI is generating source files and tests...');
+
+    try {
+        const response = await fetch('/api/quickproto/generate-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                priority: 'P1'
+            })
+        });
+
+        progress.updateStatus('Processing code artifacts...');
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate code');
+        }
+
+        progress.updateStatus('Code generation complete!');
+        progress.complete();
+
+        setTimeout(() => window.location.reload(), 500);
+
+    } catch (error) {
+        console.error('Error generating code:', error);
+        progress.cancel();
+        notify.error('Failed to generate code: ' + error.message);
+        btn.disabled = false;
+    }
+}
+
+function viewArtifact(filename, content) {
+    // Deprecated: Use code viewer modal instead
+    notify.info(`View ${filename} in the code list below`);
+}
+
+async function proceedToExport() {
+    await navigateToStep(4);
+}
+
+async function regenerateCode(priority = 'P1') {
+    if (!confirm(`Generate ${priority} code files?\n\nThis will ${priority === 'P1' ? 'overwrite existing' : 'add new'} code files. Continue?`)) {
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+
+    const estimatedTime = priority === 'P1' ? 40 : 35; // Slightly faster for P2/P3
+    const progress = aiProgress.show(`Generating ${priority} Code`, estimatedTime);
+    progress.updateStatus(`AI is generating ${priority} code files...`);
+
+    try {
+        const response = await fetch('/api/quickproto/generate-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                priority: priority
+            })
+        });
+
+        progress.updateStatus('Processing code artifacts...');
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate code');
+        }
+
+        progress.updateStatus(`${priority} code generation complete!`);
+        progress.complete();
+
+        setTimeout(() => window.location.reload(), 500);
+
+    } catch (error) {
+        console.error('Error generating code:', error);
+        progress.cancel();
+        notify.error('Failed to generate code: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+// ============================================================================
+// Step 4: Export
+// ============================================================================
+
+async function generateDocs() {
+    const progress = aiProgress.show('Generating Documentation', 90);
+    progress.updateStatus('AI is creating README.md and quickstart.md...');
+
+    try {
+        progress.updateProgress(20);
+
+        const response = await fetch('/api/quickproto/generate-docs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate documentation');
+        }
+
+        progress.updateProgress(100);
+        progress.updateStatus('Documentation generated!');
+
+        notify.success('Documentation generated!');
+
+        setTimeout(() => {
+            progress.complete();
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Error generating docs:', error);
+        progress.cancel();
+        notify.error('Error: ' + error.message);
+    }
+}
+
+async function completeWorkflow() {
+    if (!confirm('Mark this QuickProto workflow as complete?\n\nThis will finalize the prototype.')) {
+        return;
+    }
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Completing...';
+
+    try {
+        const response = await fetch('/api/quickproto/complete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to complete workflow');
+        }
+
+        notify.success('QuickProto workflow completed successfully!');
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Error completing workflow:', error);
+        notify.error('Error: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = 'Complete Workflow ✓';
+    }
+}
+
+async function downloadZip() {
+    window.location.href = `/api/quickproto/download-zip/${projectId}`;
+}
+
+// ============================================================================
+// Code Viewer/Editor
+// ============================================================================
+
+// Store code artifacts in JavaScript for editing
+let codeArtifacts = {{ quickproto_data.step3_code_artifacts|tojson|safe if quickproto_data.step3_code_artifacts else '[]' }};
+
+function viewArtifact(index) {
+    const artifact = codeArtifacts[index];
+    if (!artifact) return;
+
+    // Show modal
+    document.getElementById('code-modal').style.display = 'flex';
+    document.getElementById('code-filename').textContent = artifact.filename;
+    document.getElementById('code-editor').value = artifact.content;
+    document.getElementById('code-editor').dataset.index = index;
+
+    // Detect language for syntax highlighting hint
+    const ext = artifact.filename.split('.').pop();
+    document.getElementById('code-language').textContent = artifact.language || ext;
+}
+
+function closeCodeModal() {
+    document.getElementById('code-modal').style.display = 'none';
+}
+
+function saveCurrentFile() {
+    const index = parseInt(document.getElementById('code-editor').dataset.index);
+    const newContent = document.getElementById('code-editor').value;
+
+    // Update in-memory artifact
+    codeArtifacts[index].content = newContent;
+
+    // Show saved feedback
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = '✅ Saved!';
+    setTimeout(() => {
+        btn.textContent = originalText;
+    }, 2000);
+}
+
+async function saveAllCode() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '💾 Saving...';
+
+    try {
+        const response = await fetch('/api/quickproto/save-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                code_artifacts: codeArtifacts
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to save code');
+        }
+
+        notify.success('Changes saved successfully');
+        btn.innerHTML = '✅ Saved!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error saving code:', error);
+        notify.error('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+function downloadFile(index) {
+    const artifact = codeArtifacts[index];
+    if (!artifact) return;
+
+    const blob = new Blob([artifact.content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = artifact.filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function downloadCurrentFile() {
+    const index = parseInt(document.getElementById('code-editor').dataset.index);
+    downloadFile(index);
+}
+
+async function saveDocs() {
+    const readmeContent = document.getElementById('readme-content').value;
+    const quickstartContent = document.getElementById('quickstart-content').value;
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '💾 Saving...';
+
+    try {
+        const response = await fetch('/api/quickproto/save-docs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                readme: readmeContent,
+                quickstart: quickstartContent
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to save changes');
+        }
+
+        notify.success('Changes saved successfully');
+        btn.innerHTML = '✅ Saved!';
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error saving docs:', error);
+        notify.error('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+async function regenerateDocs() {
+    if (!confirm('Regenerate documentation?\n\nThis will overwrite README.md and quickstart.md. Continue?')) {
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="display: inline-block; width: 16px; height: 16px; vertical-align: middle; margin-right: 8px;"></span> Regenerating...';
+
+    try {
+        const response = await fetch('/api/quickproto/generate-docs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to regenerate documentation');
+        }
+
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Error regenerating docs:', error);
+        notify.error('Error: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+</script>
+
+<!-- Code Viewer/Editor Modal -->
+<div id="code-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 90%; max-height: 90vh; width: 1200px;">
+        <div class="modal-header">
+            <div>
+                <h2 id="code-filename" style="margin: 0;">file.py</h2>
+                <span id="code-language" style="font-size: 0.85rem; color: var(--rh-gray-mid);"></span>
+            </div>
+            <button class="modal-close" onclick="closeCodeModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <textarea id="code-editor" class="code-editor" rows="30" spellcheck="false"></textarea>
+            <div style="margin-top: 16px; display: flex; gap: 12px;">
+                <button class="button button-secondary" onclick="saveCurrentFile()">
+                    💾 Save File
+                </button>
+                <button class="button button-secondary" onclick="downloadCurrentFile()">
+                    ⬇️ Download File
+                </button>
+                <button class="button button-secondary" onclick="closeCodeModal()">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.code-editor {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 500px;
+}
+
+.code-editor:focus {
+    outline: none;
+    border-color: var(--rh-red);
+}
+
+.artifact-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.artifact-item button {
+    margin-left: auto;
+}
+</style>
+
+{% endblock %}

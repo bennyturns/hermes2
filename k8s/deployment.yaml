@@ -1,0 +1,144 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hermes
+  namespace: hermes
+  labels:
+    app: hermes
+    component: web
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: hermes
+      component: web
+  template:
+    metadata:
+      labels:
+        app: hermes
+        component: web
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: hermes
+
+      # Security context for pod
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+
+      containers:
+      - name: hermes
+        image: quay.io/redhat-et/hermes:latest
+        imagePullPolicy: Always
+
+        # Security context for container
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 1001
+          runAsGroup: 0
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false  # Need write for SQLite
+
+        ports:
+        - name: http
+          containerPort: 8000
+          protocol: TCP
+
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: hermes-config
+
+        # Additional environment variables
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+
+        # Resource limits and requests
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+
+        # Liveness probe
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+
+        # Readiness probe
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+
+        # Startup probe (for slow starts)
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 12  # 60 seconds total
+
+        # Volume mounts
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: tmp
+          mountPath: /tmp
+
+      # Volumes
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: hermes-data
+      - name: tmp
+        emptyDir: {}
+
+      # Affinity rules
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  app: hermes
+              topologyKey: kubernetes.io/hostname

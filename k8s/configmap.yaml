@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hermes-config
+  namespace: hermes
+  labels:
+    app: hermes
+data:
+  # Application settings
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+
+  # Mock mode settings (disable for production with real Vertex AI)
+  MOCK_MODE: "false"
+  MOCK_AGENTS: "false"
+  MOCK_EXECUTION: "false"
+
+  # Vertex AI configuration
+  VERTEX_REGION: "us-east5"
+  VERTEX_MODEL: "claude-sonnet-4-5@20250929"
+
+  # Database configuration
+  DATABASE_PATH: "/data/hermes.db"
+
+  # Paths
+  PROMPTS_DIR: "/app/prompts"
+  TEMPLATES_DIR: "/app/templates"
+  STATIC_DIR: "/app/static"
+  OUTPUT_DIR: "/data/output"

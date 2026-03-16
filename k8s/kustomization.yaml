@@ -1,0 +1,39 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: hermes
+
+# Common labels applied to all resources
+commonLabels:
+  app: hermes
+  team: octo
+  managed-by: kustomize
+
+# Resources to deploy
+resources:
+- namespace.yaml
+- serviceaccount.yaml
+- configmap.yaml
+- pvc.yaml
+- deployment.yaml
+- service.yaml
+- route.yaml
+- networkpolicy.yaml
+# - secret.yaml  # Uncomment after creating from secret.yaml.example
+
+# Images to use (can be overridden)
+images:
+- name: quay.io/redhat-et/hermes
+  newTag: latest
+
+# ConfigMap generator for additional config
+configMapGenerator:
+- name: hermes-version
+  literals:
+  - version=1.0.0
+  - build-date=2026-03-13
+
+# Strategic merge patches (optional customization)
+# patchesStrategicMerge:
+# - replica-count.yaml

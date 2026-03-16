@@ -1,0 +1,75 @@
+# Hermes - Container Ignore File
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Database (will be mounted as volume in OpenShift)
+*.db
+*.sqlite
+*.sqlite3
+hermes.db
+
+# Output artifacts (will be mounted as volume)
+output/
+
+# Test files
+tests/
+test_*.py
+*_test.py
+pytest.ini
+.pytest_cache/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Container files
+Containerfile
+.containerignore
+build.sh
+
+# Kubernetes manifests
+k8s/
+*.yaml
+*.yml
+
+# Logs
+*.log
+/tmp/
+logs/
+
+# Environment files (secrets managed via OpenShift)
+.env
+.env.*
+!.env.example

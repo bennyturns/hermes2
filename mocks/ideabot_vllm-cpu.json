@@ -1,0 +1,20 @@
+{
+  "project_id": "vllm-cpu",
+  "answers": {
+    "q1_name": "Maryam Tahhan",
+    "q2_idea": "Develop a CPU-optimized version of vLLM (the popular LLM inference engine) to enable AI inference acceleration without requiring expensive GPU hardware. This addresses the need for cost-effective, accessible AI inference capabilities, particularly for edge deployments and development environments where GPUs may not be available or cost-effective.",
+    "q3_project_name": "vLLM CPU Platform",
+    "q4_market_relevance": "This is highly relevant to Red Hat's AI strategy. Many customers want to experiment with LLM inference without GPU investments. CPU-based inference enables: (1) Lower barrier to entry for AI adoption, (2) Edge deployment scenarios where GPUs aren't practical, (3) Development and testing environments, (4) Fallback options when GPU resources are constrained. This aligns with our accelerator optionality strategy - customers shouldn't be locked into specific hardware.",
+    "q5_strategic_priority": "AI Inference Acceleration - specifically around accelerator optionality and making AI accessible across diverse hardware profiles.",
+    "q6_catcher_product": "Red Hat Inference Server - this would provide CPU-based inference capabilities as an alternative to GPU-only deployments.",
+    "q7_catcher_pm": "Harshal Ghodmare",
+    "q8_catcher_em": "Sudhir Dharanendraiah",
+    "q9_catcher_tl": "Joseph Groenenboom",
+    "q10_existing_work": "Yes - I've confirmed with Joseph that the AI Inference team is not currently working on CPU optimization for vLLM. They're focused on GPU acceleration. This creates an opportunity for OCTO to explore the CPU path and potentially contribute this capability upstream and to the product.",
+    "q11_technical_approach": "Yes - discussed with Joseph. The approach would be: (1) Fork vLLM and implement CPU-optimized kernels using AVX-512 and AMX instructions, (2) Create development containers (similar to triton-dev-containers pattern) for easy onboarding, (3) Benchmark against GPU performance to understand tradeoffs, (4) Contribute improvements back to upstream vLLM project, (5) Package for Red Hat Inference Server integration. Joseph is supportive and willing to be the catcher for this work."
+  },
+  "evaluation": {
+    "decision": "approved",
+    "rationale": "This idea aligns strongly with Red Hat's AI strategy around accelerator optionality and edge AI deployments. The market need is clear - not all customers have GPU resources, and CPU-based inference fills an important gap. The technical approach is sound, leveraging proven patterns from our triton-dev-containers work. Most importantly, we have confirmed catcher buy-in from the AI Inference team (Joseph Groenenboom as technical lead), reducing transfer risk. The project scope is well-defined and achievable within OCTO's rapid prototyping model. Approved for ProtoBot execution."
+  }
+}

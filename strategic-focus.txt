@@ -1,0 +1,11 @@
+Our current focus areas are on the intersection of Artificial Intelligence and our addressable market. 
+I am describing them in reference to specific layers of our stack going from the top of the stack to the bottom.
+
+- Agentic Development, Lifecycle Maintenance and Operations
+- Agentic Zero Trust (Security, Identity, Authorization, Access etc.)
+- Post Training and RL (Reinforcement Learning)
+- Model Architectures (Multi-Modal, Diffusion Models, World Models)
+- Inference Platform (vLLM, Kubernetes, SLURM)
+- Inference Accelerators (GPU, CPU, Spyre etc.)
+- AI Infrastructure (Regional Data Center Dynamics around Power and Cooling)
+

@@ -1,0 +1,138 @@
+# ProtoBot Test Scenario: vllm-cpu
+
+This test uses the vllm-cpu project that was approved by IdeaBot. The data below represents the Dashboard record that ProtoBot would ingest as its input.
+
+## Dashboard Input Payload
+
+Project: vllm-cpu
+Strategic Priority: Inference Accelerators
+Lead: Maryam Tahhan
+Catcher Organization: AI Engineering
+Product: Red Hat Inference Server
+Catcher Engineering Manager: Taneem Ibrahim
+Catcher Product Manager: Erwan Gallen
+Catching Technical Lead: Tyler Michael Smith
+Slack: #forum-accelerating-ai
+IdeaBot Status: Approved
+
+## Original Idea Summary
+
+Develop the vllm-cpu sub-project to add CPU Inference capabilities for the vLLM project. These capabilities can then be added to the Red Hat Inference Server product, providing customers with the ability to do generative inference with either GPUs or CPUs. Xeon 5 and 6 support the new ACE extensions for matrix multiplication in the x86 ISA. vllm-cpu adds a new runtime to the vLLM Inference Server to enable the kernels for the model architectures supported to now run on CPU as well.
+
+## IdeaBot Rationale
+
+The new Blackwell and Vera Rubin GPUs exceed the power and capabilities of many data centers in many regions. Existing data centers built for traditional workloads are full of Intel Xeon 5 and Xeon 6 servers that aren't fully utilized. Combined with existing Kubernetes deployments, this provides a compelling alternative for certain types of workloads. Accelerator optionality is a key aspect of Red Hat's hybrid platform value proposition.
+
+## IdeaBot Q&A Context
+
+The following answers were captured during the IdeaBot evaluation and should be treated as research leads by the Blueprint Agent:
+
+Market Relevance: The new Blackwell and Vera Rubin GPUs exceed the power and capabilities of many data centers in many regions. In addition, existing data centers built for traditional workloads are full of Intel Xeon 5 and Xeon 6 servers that aren't fully utilized that and combined with their existing Kubernetes deployments, this provides a compelling alternative for certain types of workloads. Accelerator optionality is a key aspect of Red Hat's hybrid platform value proposition.
+
+Strategic Priority Alignment: AI Platforms. Specifically advancing our Inference Server capabilities.
+
+Catcher Already Working On This: I have checked and no-one else is working on this problem. The Neural Magic team is only focused on GPU enablement.
+
+Technical Approach Discussion: Yes. Tyler, Erwan and Taneem are asking us to take this project on.
+
+## Expected Phase 1 Behavior: Iterative Blueprint Workflow
+
+### Step 1: Research Leads the Blueprint Agent Should Identify
+
+From the payload, the Blueprint Agent should identify at least these research leads:
+
+- "vllm-cpu" / "vLLM project" → Find the vLLM GitHub repo (github.com/vllm-project/vllm), look for a vllm-cpu sub-project or branch, assess its status
+- "Inference Accelerators" strategic priority → Cross-reference against strategic-focus.txt, confirm alignment
+- "Red Hat Inference Server" → Research what this product is, its current capabilities, how it relates to vLLM
+- "ACE extensions for matrix multiplication in the x86 ISA" / "Xeon 5 and 6" → Research Intel's ACE/AMX extensions, verify hardware roadmap
+- "Blackwell and Vera Rubin GPUs exceed the power and capabilities of many data centers" → Research data center power constraints, verify this market claim
+- "Neural Magic team is only focused on GPU enablement" → Research Neural Magic's role in vLLM, understand the GPU-only focus and the gap this creates
+- "Tyler, Erwan and Taneem are asking us to take this project on" → Note that the catchers are actively requesting this work, which is a strong alignment signal
+- "AI Engineering" catcher org → Research what AI Engineering is currently shipping
+- "#forum-accelerating-ai" Slack channel → Note the community context
+
+### Step 2: Expected Research Activities
+
+The Blueprint Agent should perform at minimum:
+
+- Visit github.com/vllm-project/vllm and check recent commit activity, contributors, release cadence
+- Search for "vllm-cpu" to find any existing sub-project, branch, or proposal
+- Research Intel AMX (Advanced Matrix Extensions) and ACE — verify they exist, which CPU generations support them, Intel's roadmap
+- Research the Red Hat Inference Server product — what it currently offers, recent releases
+- Look up Neural Magic and their role in the vLLM ecosystem
+- Research data center power/cooling trends to validate the market rationale
+- Check for competing CPU inference approaches (e.g., llama.cpp, ONNX Runtime CPU)
+
+### Step 3: Expected Follow-Up Questions to HIL
+
+After initial research, the Blueprint Agent should ask follow-up questions like (examples, not exhaustive):
+
+- "The vllm-cpu sub-project doesn't appear to have an active upstream repo yet — is this greenfield work, or is there an existing branch or fork to build from?"
+- "The IdeaBot payload mentions ACE extensions, but Intel's current public documentation refers to AMX (Advanced Matrix Extensions) on Xeon 4th/5th gen. Are ACE and AMX the same thing, or is ACE a newer/different extension on Xeon 6?"
+- "Tyler Michael Smith is listed as the catching tech lead — has the technical approach discussion covered which model architectures to target first for CPU kernels, or is that a decision for the prototype phase?"
+- "The Neural Magic team is GPU-only — does the Red Hat Inference Server currently have any backend abstraction layer, or would adding a CPU backend require a new interface?"
+- "Are there specific performance targets for the CPU inference prototype (e.g., minimum tokens/sec for a given model size), or is the goal to demonstrate feasibility first?"
+
+### Example HIL Answers (for test purposes)
+
+Q: "Is vllm-cpu greenfield or based on an existing branch?"
+A: "There is an existing vllm-cpu effort in the vLLM community that Maryam has been contributing to. It's not a separate repo — it's a set of patches and a new backend within the main vLLM repo."
+
+Q: "Are ACE and AMX the same thing?"
+A: "AMX is the current generation (Xeon 4th gen Sapphire Rapids). ACE is the next-generation extension in Xeon 6 Granite Rapids. We want to target AMX as the baseline and add ACE optimizations as a stretch goal."
+
+Q: "Which model architectures to target first?"
+A: "Start with LLaMA-family models since they're the most popular and Tyler's team is most familiar with them. Mistral as a secondary target."
+
+Q: "Does Red Hat Inference Server have a backend abstraction layer?"
+A: "vLLM has an executor/worker architecture. The CPU backend would plug in at the executor level, similar to how the GPU backend works. Tyler can provide more detail during the checkpoint meeting."
+
+Q: "Performance targets?"
+A: "Feasibility first. We want to show that a 7B parameter model can run inference on a dual-socket Xeon 6 system. Performance optimization comes later."
+
+### Step 4: Expected Blueprint Content (after research + Q&A)
+
+The final blueprint should contain evidence-backed findings, not just generic statements:
+
+1. Upstream Ecosystem & Community:
+   - Identify vLLM as the upstream project (github.com/vllm-project/vllm) with specific data: X contributors, Y recent commits, Z release cadence
+   - Assess community health: corporate backing (who), governance model, contribution velocity
+   - Note the vllm-cpu effort's status within the main repo (patches/backend, not a separate sub-project)
+   - Reference Neural Magic's GPU-only focus as the gap being filled
+
+2. Strategic Longevity:
+   - CPU inference is foundational — not a fad, backed by evidence (data center power trends, Xeon installed base)
+   - AMX (baseline) and ACE (stretch) represent a long-term hardware investment by Intel — cite Intel's roadmap
+   - Note competing approaches (llama.cpp, ONNX Runtime) and why vLLM integration is strategically better for Red Hat
+   - Cross-reference with "Inference Accelerators" in strategic-focus.txt
+
+3. Red Hat Product Fit:
+   - Direct fit into Red Hat Inference Server (downstream of vLLM) — cite current product capabilities
+   - Complements existing GPU-based inference in OpenShift AI
+   - Aligns with RHEL AI for on-premise deployments
+   - Note that catchers (Tyler, Erwan, Taneem) are actively requesting this work
+
+4. Safety & Security Posture:
+   - Model supply chain security (model provenance, signing)
+   - Memory safety considerations for C++ kernel code (AMX/ACE kernels are native code)
+   - Container isolation for inference workloads
+   - Any relevant CVEs or security advisories in the vLLM project
+
+5. Technical & Architectural Constraints:
+   - AMX as baseline ISA (Xeon 4th gen+), ACE as stretch (Xeon 6+) — per HIL input
+   - Target LLaMA-family models first, Mistral secondary — per HIL input
+   - NUMA topology awareness for multi-socket Xeon systems (dual-socket is the demo target)
+   - Memory bandwidth as the primary bottleneck for CPU inference — cite benchmarks if found
+   - vLLM executor/worker architecture as the integration point for the CPU backend
+   - Minimum viable scope: 7B parameter model on dual-socket Xeon 6, feasibility demonstration
+
+## Expected Phase 2 Behavior (when implemented)
+
+After HIL approves the blueprint:
+
+- Orchestrator resolves any blocking open questions with the HIL before spawning agents
+- Wave 1: Code Agent generates Python integration scripts and C++ AMX/ACE kernels for LLaMA-family models; Ops Agent drafts the catcher email to Erwan, Taneem, and Tyler, creates the checkpoint meeting invite, and drafts the blog post
+- Wave 2: Infra Agent produces Containerfile (UBI9 base) and OpenShift manifests with Xeon nodeSelectors targeting AMX-capable nodes, plus a Tekton pipeline for build/sign/deploy
+- Wave 3: Ops Agent updates the email and blog post with actual repo URL and artifact details
+- Orchestrator cross-validates: Containerfile installs the C++ build dependencies from the Code Agent's CMakeLists.txt, manifests target nodes with AMX support, ports and entry points match
+- HIL reviews: approves code push to github.com/redhat-et/vllm-cpu, chooses to save the blog post to file for editing, sends the catcher email, skips the calendar invite (will schedule manually)

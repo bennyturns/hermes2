@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hermes{% endblock %} - OCTO Emerging Technologies</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <div class="topbar-title">HERMES</div>
+            <div class="topbar-subtitle">Emerging Technologies Playbook</div>
+        </div>
+        <div class="topbar-right">
+            <a href="/admin" class="topbar-link" title="Admin Settings">⚙️</a>
+            <a href="/" class="topbar-link" title="Dashboard">🏠</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    {% block content %}
+    {% endblock %}
+
+    <!-- Load notification system before page scripts -->
+    <script src="{{ url_for('static', path='/notifications.js') }}"></script>
+    <script src="{{ url_for('static', path='/progress.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

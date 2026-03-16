@@ -1,0 +1,32 @@
+Q: What is your name? 
+A: Maryam Tahhan
+
+Q: What is the idea?
+A: I want to develop the vllm-cpu sub-project to add CPU Inference capabilities for the vLLM project. These capabilities can then be added to the Red Hat Inference Server product, providing our customers with the ability to do generative inference with either GPUs or CPUs. 2. Xeon 5 and 6 support the new ACE extensions for matrix multiplication in the x86 ISA. vllm-cpu adds a new run to the vLLM Inference Server to enable the Kernels for the Model Architectures supported to now run on CPU as well. There is no way to run vLLM on CPU today. So this feature doesn't add additional CPU capabilities, it adds the foundation for them.
+
+Q: What is the project name for your idea?
+A: vllm-cpu
+
+Q: Why do you think this is relevant to Red Hat's current or future addressable market?
+A: The new Blackwell and Vera Rubin GPUs exceed the power and capabilities of many data centers in many regions. In addition, existing data centers built for traditional workloads are full of Intel Xeon 5 and Xeon 6 servers that aren't fully utilized that and combined with their existing Kubernetes deployments, this provides a compelling alternative for certain types of workloads. Accelerator optionality is a key aspect of Red Hat's hybrid platform value proposition.
+
+Q: Does this idea contribute towards an existing strategic priority for OCTO or Red Hat?
+A: AI Platforms. Specifically advancing our Inference Server capabilities. 
+
+Q: Where in the Red Hat Portfolio would these new capabilities land (the catcher)?
+A: AI Engineering
+
+Q: Who is the catching Product Manager?
+A: Erwan Gallen
+
+Q: Who is the catching Engineering Manager?
+A: Taneem Ibrahim
+
+Q: Who is the catching engineer with the most influence on the design approach?
+A: Tyler Michael Smith
+
+Q: Have you checked with members of the relevant catching engineering team and business unit that they are not already working on this idea?
+A: I have checked and no-one else is working on this problem. The Neural Magic team is only focused on GPU enablement.
+
+Q: Have you had a discussion on the technical approach to take with the relevant catchers' technical leads?
+A: Yes. Tyler, Erwan and Taneem are asking us to take this project on.

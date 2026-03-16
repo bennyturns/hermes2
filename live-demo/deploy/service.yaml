@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermes-simulation
+  namespace: hermes-demo
+  labels:
+    app: hermes-simulation
+spec:
+  selector:
+    app: hermes-simulation
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  type: ClusterIP

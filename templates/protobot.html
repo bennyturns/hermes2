@@ -1,0 +1,2575 @@
+{% extends "base.html" %}
+
+{% block title %}ProtoBot - {{ project.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 16px;">
+        <a href="/" style="color: var(--rh-gray-mid);">← Back to Dashboard</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">ProtoBot - Prototype Execution</h1>
+            <p class="card-subtitle">{{ project.name }}</p>
+        </div>
+
+        <div class="card-body">
+            <!-- Phase Progress Bar -->
+            <div class="phase-progress">
+                <div class="phase-progress-bar">
+                    {% for i in range(1, 9) %}
+                    {% set step_completed = false %}
+                    {% if i == 1 and protobot_data.step1_research_leads and protobot_data.step1_research_leads|length > 0 %}
+                        {% set step_completed = true %}
+                    {% elif i == 2 and protobot_data.step2_research_findings %}
+                        {% set step_completed = true %}
+                    {% elif i == 3 and protobot_data.step3_followup_qa %}
+                        {% set has_unanswered = namespace(value=false) %}
+                        {% for q in protobot_data.step3_followup_qa %}
+                            {% if not q.answer or q.answer == '' %}
+                                {% set has_unanswered.value = true %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if not has_unanswered.value %}
+                            {% set step_completed = true %}
+                        {% endif %}
+                    {% elif i == 4 and protobot_data.step4_blueprint %}
+                        {% set step_completed = true %}
+                    {% elif i == 5 and protobot_data.step5_hil_approved %}
+                        {% set step_completed = true %}
+                    {% elif i == 6 and protobot_data.step6_code_artifacts and protobot_data.step6_infra_artifacts and protobot_data.step6_comms_artifacts %}
+                        {% set step_completed = true %}
+                    {% elif i == 7 and protobot_data.step7_validation %}
+                        {% set step_completed = true %}
+                    {% elif i == 8 and protobot_data.step8_final_config and protobot_data.step8_final_config.files_written and protobot_data.step8_final_config.patch_created and protobot_data.step8_final_config.comms_sent and protobot_data.step8_final_config.jira_updated %}
+                        {% set step_completed = true %}
+                    {% endif %}
+
+                    <div class="phase-step {% if step_completed %}completed{% elif i == protobot_data.current_step %}active{% else %}pending{% endif %} clickable" onclick="navigateToStep({{ i }})">
+                        <div class="phase-number">{{ i }}</div>
+                        <div class="phase-label">
+                            {% if i == 1 %}Research Leads
+                            {% elif i == 2 %}Research Findings
+                            {% elif i == 3 %}Follow-up Q&A
+                            {% elif i == 4 %}Blueprint
+                            {% elif i == 5 %}HIL Review
+                            {% elif i == 6 %}Execution
+                            {% elif i == 7 %}Validation
+                            {% elif i == 8 %}Handoff
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Step Navigation -->
+            <div style="display: flex; justify-content: space-between; margin-top: 24px; padding: 16px; background-color: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                <button class="button button-secondary" onclick="navigateToStep({{ protobot_data.current_step - 1 }})" {% if protobot_data.current_step <= 1 %}disabled{% endif %}>
+                    ← Previous Step
+                </button>
+                <div style="color: var(--rh-gray-mid); font-weight: 500;">
+                    Step {{ protobot_data.current_step }} of 8
+                </div>
+                <button class="button button-secondary" onclick="navigateToStep({{ protobot_data.current_step + 1 }})" {% if protobot_data.current_step >= 8 %}disabled{% endif %}>
+                    Next Step →
+                </button>
+            </div>
+
+            <!-- Main Content Area -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-top: 32px;">
+                <!-- Left Panel: Phase Details -->
+                <div>
+                    <!-- Phase 1: Research Leads -->
+                    {% if protobot_data.current_step == 1 %}
+                    <div class="phase-content">
+                        <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 1: Research Leads</h2>
+
+                        {% if protobot_data.step1_research_leads and protobot_data.step1_research_leads|length > 0 %}
+                        <p class="mb-lg">ProtoBot has generated {{ protobot_data.step1_research_leads|length }} research leads from your IdeaBot answers. Review and edit as needed, then proceed to execute research.</p>
+
+                        <div class="task-list" id="research-leads-list">
+                            {% for lead in protobot_data.step1_research_leads %}
+                            <div class="task-item" data-lead-index="{{ loop.index0 }}">
+                                <div class="task-header">
+                                    <span class="task-source">{{ lead.source }}</span>
+                                    <span class="badge badge-approved">Ready</span>
+                                </div>
+                                <div class="task-lead"><strong>Lead:</strong> <span contenteditable="true" class="editable-field" data-field="lead">{{ lead.lead }}</span></div>
+                                <div class="task-action"><strong>Action:</strong> <span contenteditable="true" class="editable-field" data-field="action">{{ lead.action }}</span></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
+                            <button class="button button-secondary" onclick="saveLeads()">Save Changes</button>
+                            <button class="button button-secondary" onclick="regenerateLeads()">Regenerate Leads</button>
+                        </div>
+
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Research leads ready. Use "Next Step →" above to proceed to Step 2 and execute research.</p>
+                        </div>
+                        {% else %}
+                        <p class="mb-lg">No research leads generated yet. Click the button below to extract research leads from your approved IdeaBot answers.</p>
+
+                        <div id="generate-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+
+                        <div style="margin-top: 24px;">
+                            <button class="button button-primary" onclick="generateLeads()">Generate Research Leads</button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Step 2: Research Findings -->
+                    {% if protobot_data.current_step == 2 %}
+                    <div class="phase-content">
+                        <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 2: Research Findings</h2>
+
+                        {% if protobot_data.step2_research_findings %}
+                        <p class="mb-lg">Research complete! ProtoBot has analyzed findings across 5 key dimensions.</p>
+
+                        {% for category, data in protobot_data.step2_research_findings.items() %}
+                        <div class="findings-category">
+                            <h3 style="color: var(--rh-black); margin-bottom: 12px;">{{ category.replace('_', ' ')|title }}</h3>
+
+                            <div class="findings-section">
+                                <h4>Findings</h4>
+                                <ul>
+                                    {% for finding in data.findings %}
+                                    <li>{{ finding }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div class="findings-section">
+                                <h4>Risks</h4>
+                                <ul class="risk-list">
+                                    {% for risk in data.risks %}
+                                    <li>{{ risk }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div class="findings-section">
+                                <h4>Open Questions</h4>
+                                <ul class="question-list">
+                                    {% for question in data.open_questions %}
+                                    <li>{{ question }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Research findings complete. Use "Next Step →" above to proceed to Step 3 and generate follow-up questions.</p>
+                        </div>
+                        {% else %}
+                        <p class="mb-lg">Research not executed yet. This step will investigate your project across 5 critical vectors.</p>
+                        <div id="research-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+                        <div style="margin-top: 24px;">
+                            <button class="button button-primary" onclick="executeResearchPhase()">Execute Research</button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Step 3: Follow-up Q&A -->
+                    {% if protobot_data.current_step == 3 %}
+                    <div class="phase-content">
+                        <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 3: Follow-up Q&A</h2>
+
+                        {% if protobot_data.step3_followup_qa and protobot_data.step3_followup_qa|length > 0 %}
+                        <p class="mb-lg">ProtoBot has generated {{ protobot_data.step3_followup_qa|length }} targeted follow-up questions based on the research findings. Please provide answers to help refine the technical blueprint.</p>
+
+                        <div id="qa-list">
+                            {% for qa in protobot_data.step3_followup_qa %}
+                            <div class="qa-item" data-qa-index="{{ loop.index0 }}">
+                                <div class="qa-question">
+                                    <strong style="color: var(--rh-red);">Q{{ loop.index }}:</strong> {{ qa.question }}
+                                </div>
+                                <div class="qa-answer">
+                                    <strong>Answer:</strong>
+                                    <div class="answer-field" contenteditable="true" data-placeholder="Enter your answer...">{{ qa.answer }}</div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
+                            <button class="button button-secondary" onclick="saveAnswers()">Save Answers</button>
+                            <button class="button button-secondary" onclick="regenerateQuestions()">Regenerate Questions</button>
+                        </div>
+
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Follow-up Q&A ready. Use "Next Step →" above to proceed to Step 4 and generate the technical blueprint.</p>
+                        </div>
+                        {% else %}
+                        <p class="mb-lg">No follow-up questions generated yet. Click below to analyze research gaps and generate targeted questions.</p>
+
+                        <div id="qa-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+
+                        <div style="margin-top: 24px;">
+                            <button class="button button-primary" onclick="generateQuestionsPhase()">Generate Follow-up Questions</button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Step 4: Blueprint -->
+                    {% if protobot_data.current_step == 4 %}
+                    <div class="phase-content">
+                        <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 4: Technical Blueprint</h2>
+
+                        {% if protobot_data.step4_blueprint %}
+                        <p class="mb-lg">Complete technical blueprint synthesized from research and Q&A. Review the blueprint and proceed to HIL approval when ready.</p>
+
+                        <div style="margin-bottom: 24px;">
+                            <a href="/api/protobot/export-blueprint/{{ project.id }}" class="button button-secondary" download>
+                                📄 Export as Markdown
+                            </a>
+                        </div>
+
+                        {% for category, data in protobot_data.step4_blueprint.items() %}
+                        <div class="blueprint-section">
+                            <h3 style="color: var(--rh-black); margin-bottom: 16px;">{{ category.replace('_', ' ')|title }}</h3>
+
+                            <div class="blueprint-item">
+                                <h4>Summary</h4>
+                                <p>{{ data.summary }}</p>
+                            </div>
+
+                            <div class="blueprint-item">
+                                <h4>Key Findings</h4>
+                                <ol>
+                                    {% for finding in data.key_findings %}
+                                    <li>{{ finding }}</li>
+                                    {% endfor %}
+                                </ol>
+                            </div>
+
+                            <div class="blueprint-item">
+                                <h4>Risks & Mitigations</h4>
+                                <ul class="risk-mitigation-list">
+                                    {% for rm in data.risks_mitigations %}
+                                    <li>{{ rm }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div class="blueprint-item">
+                                <h4>Recommendations</h4>
+                                <ul class="recommendation-list">
+                                    {% for rec in data.recommendations %}
+                                    <li>{{ rec }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Technical blueprint complete. Use "Next Step →" above to proceed to Step 5 for Human-in-Loop approval.</p>
+                        </div>
+                        {% else %}
+                        <p class="mb-lg">Blueprint not generated yet. Click below to synthesize all research and Q&A into a comprehensive technical design document.</p>
+
+                        <div id="blueprint-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+
+                        <div style="margin-top: 24px;">
+                            <button class="button button-primary" onclick="generateBlueprintPhase()">Generate Blueprint</button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Step 5: HIL Approval -->
+                    {% if protobot_data.current_step == 5 or (protobot_data.current_step == 4 and not protobot_data.step5_hil_approved) %}
+                    <div class="phase-content">
+                        <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 5: Human-in-Loop Approval</h2>
+
+                        {% if protobot_data.step5_hil_approved %}
+                        <div style="padding: 24px; background-color: var(--rh-green); color: white; border-radius: var(--border-radius-sm); margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 8px 0;">✓ Blueprint Approved</h3>
+                            <p style="margin: 0;">The technical blueprint has been reviewed and approved. ProtoBot is ready to execute code generation.</p>
+                        </div>
+
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Blueprint approved. Use "Next Step →" above to proceed to Step 6 for code and infrastructure generation.</p>
+                        </div>
+                        {% else %}
+                        <p class="mb-lg">Review the complete technical blueprint and approve to proceed with ProtoBot execution. This is the final checkpoint before code generation begins.</p>
+
+                        <div class="approval-checklist">
+                            <h3>Pre-Execution Checklist:</h3>
+                            <ul>
+                                <li>✓ Blueprint aligns with strategic priorities</li>
+                                <li>✓ Technical approach is sound and feasible</li>
+                                <li>✓ Risks have been identified and mitigated</li>
+                                <li>✓ Security and compliance requirements addressed</li>
+                                <li>✓ Catcher team engagement confirmed</li>
+                            </ul>
+                        </div>
+
+                        <div id="approval-status" style="display: none; padding: 12px; margin: 16px 0; border-radius: var(--border-radius-sm);"></div>
+
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
+                            <button class="button button-primary" onclick="approveBlueprint()">Approve & Proceed to Execution</button>
+                            <button class="button button-secondary" onclick="window.location.reload()">Back to Review Blueprint</button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Step 6: Execution -->
+                    {% if protobot_data.current_step == 6 %}
+                    <div class="phase-content">
+                        <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 6: ProtoBot Execution</h2>
+
+                        <p class="mb-lg">ProtoBot will generate code, infrastructure, and communications artifacts based on the approved blueprint.</p>
+
+                        <!-- Code Panel -->
+                        <div class="execution-panel">
+                            <div class="panel-header">
+                                <h3>Code Generation</h3>
+                                <span class="badge {% if protobot_data.step6_code_artifacts %}badge-approved{% else %}badge-not-started{% endif %}">
+                                    {% if protobot_data.step6_code_artifacts %}Complete{% else %}Pending{% endif %}
+                                </span>
+                            </div>
+
+                            {% if protobot_data.step6_code_artifacts %}
+                            <div class="panel-body">
+                                <p><strong>Generated Files:</strong></p>
+                                <div class="artifact-list">
+                                    {% for artifact in protobot_data.step6_code_artifacts %}
+                                    <div class="artifact-item" onclick="viewArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`)">
+                                        <span class="artifact-icon">📄</span>
+                                        <span class="artifact-name">{{ artifact.filename }}</span>
+                                        <span class="artifact-type badge">{{ artifact.type }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="panel-body">
+                                <div id="code-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+                                <button class="button button-primary" onclick="generateCode()">Generate Code Artifacts</button>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Infrastructure Panel -->
+                        <div class="execution-panel">
+                            <div class="panel-header">
+                                <h3>Infrastructure & Security</h3>
+                                <span class="badge {% if protobot_data.step6_infra_artifacts %}badge-approved{% else %}badge-not-started{% endif %}">
+                                    {% if protobot_data.step6_infra_artifacts %}Complete{% else %}Pending{% endif %}
+                                </span>
+                            </div>
+
+                            {% if protobot_data.step6_infra_artifacts %}
+                            <div class="panel-body">
+                                <p><strong>Generated Files:</strong></p>
+                                <div class="artifact-list">
+                                    {% for artifact in protobot_data.step6_infra_artifacts %}
+                                    <div class="artifact-item" onclick="viewArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`)">
+                                        <span class="artifact-icon">{% if artifact.type == 'container' %}🐳{% elif artifact.type == 'deployment' %}☸️{% elif artifact.type == 'security' %}🔒{% else %}📄{% endif %}</span>
+                                        <span class="artifact-name">{{ artifact.filename }}</span>
+                                        <span class="artifact-type badge">{{ artifact.type }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="panel-body">
+                                <div id="infra-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+                                <button class="button button-primary" onclick="generateInfrastructure()">Generate Infrastructure Artifacts</button>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Operations Panel -->
+                        <div class="execution-panel">
+                            <div class="panel-header">
+                                <h3>Operations & Communications</h3>
+                                <span class="badge {% if protobot_data.step6_comms_artifacts %}badge-approved{% else %}badge-not-started{% endif %}">
+                                    {% if protobot_data.step6_comms_artifacts %}Complete{% else %}Pending{% endif %}
+                                </span>
+                            </div>
+
+                            {% if protobot_data.step6_comms_artifacts %}
+                            <div class="panel-body">
+                                <p><strong>Generated Communications:</strong></p>
+                                <div class="artifact-list">
+                                    {% if protobot_data.step6_comms_artifacts.email %}
+                                    <div class="artifact-item" onclick="viewArtifact('transfer-email.eml', `{{ protobot_data.step6_comms_artifacts.email|replace('`', '\\`')|replace('$', '\\$') }}`)">
+                                        <span class="artifact-icon">📧</span>
+                                        <span class="artifact-name">transfer-email.eml</span>
+                                        <span class="artifact-type badge">email</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if protobot_data.step6_comms_artifacts.calendar %}
+                                    <div class="artifact-item" onclick="viewArtifact('transfer-meeting.ics', `{{ protobot_data.step6_comms_artifacts.calendar|replace('`', '\\`')|replace('$', '\\$') }}`)">
+                                        <span class="artifact-icon">📅</span>
+                                        <span class="artifact-name">transfer-meeting.ics</span>
+                                        <span class="artifact-type badge">calendar</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if protobot_data.step6_comms_artifacts.blog %}
+                                    <div class="artifact-item" onclick="viewArtifact('blog-post.md', `{{ protobot_data.step6_comms_artifacts.blog|replace('`', '\\`')|replace('$', '\\$') }}`)">
+                                        <span class="artifact-icon">📝</span>
+                                        <span class="artifact-name">blog-post.md</span>
+                                        <span class="artifact-type badge">blog</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="panel-body">
+                                <div id="comms-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+                                <button class="button button-primary" onclick="generateCommunications()">Generate Communications</button>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Proceed to Validation button (shown when all artifacts are generated) -->
+                        {% if protobot_data.step6_code_artifacts and protobot_data.step6_infra_artifacts and protobot_data.step6_comms_artifacts %}
+                        <div class="mt-xl" style="text-align: center; padding: 24px; background-color: var(--rh-gray-lighter); border-radius: var(--border-radius-md);">
+                            <h3 style="color: var(--rh-green); margin-bottom: 16px;">✓ All Artifacts Generated!</h3>
+                            <p class="mb-lg">Code, infrastructure, and communications artifacts are ready for validation.</p>
+                            <button class="button button-primary" onclick="proceedToValidation()">
+                                Proceed to Validation →
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Other steps stub -->
+                    <!-- Step 7: Validation -->
+                    {% if protobot_data.current_step == 7 %}
+                    <div class="phase-content">
+                        <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 7: Prototype Validation</h2>
+
+                        <p class="mb-lg">Review and test the generated prototype before handoff.</p>
+
+                        <div class="validation-panel">
+                            <div class="panel-header">
+                                <h3>Validation Checklist</h3>
+                            </div>
+                            <div class="validation-checklist">
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="val-code" {% if protobot_data.step7_validation and protobot_data.step7_validation.code_validated %}checked{% endif %}>
+                                    <label for="val-code">Code artifacts reviewed and functional</label>
+                                </div>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="val-infra" {% if protobot_data.step7_validation and protobot_data.step7_validation.infra_validated %}checked{% endif %}>
+                                    <label for="val-infra">Infrastructure manifests tested</label>
+                                </div>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="val-docs" {% if protobot_data.step7_validation and protobot_data.step7_validation.docs_validated %}checked{% endif %}>
+                                    <label for="val-docs">Documentation complete and accurate</label>
+                                </div>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="val-security" {% if protobot_data.step7_validation and protobot_data.step7_validation.security_validated %}checked{% endif %}>
+                                    <label for="val-security">Security requirements met</label>
+                                </div>
+                                <div class="checklist-item">
+                                    <input type="checkbox" id="val-comms" {% if protobot_data.step7_validation and protobot_data.step7_validation.comms_validated %}checked{% endif %}>
+                                    <label for="val-comms">Communications reviewed</label>
+                                </div>
+                            </div>
+                            <button class="button button-primary mt-md" onclick="approveValidation()">
+                                Mark Validation Complete
+                            </button>
+                        </div>
+
+                        {% if protobot_data.step7_validation and protobot_data.step7_validation.code_validated %}
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Validation complete. Use "Next Step →" above to proceed to Step 8 for handoff execution.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Step 8: Handoff & Execution -->
+                    {% if protobot_data.current_step == 8 %}
+                    <div class="phase-content">
+                        <h2 style="color: var(--rh-red); margin-bottom: 16px;">Step 8: Technology Transfer & Handoff</h2>
+
+                        <p class="mb-lg">Execute file generation, create git patches, and coordinate handoff to the catcher team.</p>
+
+                        <!-- File Execution Panel -->
+                        <div class="execution-panel mb-lg">
+                            <div class="panel-header">
+                                <h3>📁 File Execution</h3>
+                                <span class="badge {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written %}badge-approved{% else %}badge-not-started{% endif %}">
+                                    {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written %}Completed{% else %}Ready{% endif %}
+                                </span>
+                            </div>
+                            <div class="panel-body">
+                                <p style="margin-bottom: 12px;">Write all artifacts to local filesystem in <code>output/{{ project.id }}/</code></p>
+                                <div class="action-input">
+                                    <label>Output Directory:</label>
+                                    <input type="text" id="output-dir" value="{% if protobot_data.step8_final_config and protobot_data.step8_final_config.output_dir %}{{ protobot_data.step8_final_config.output_dir }}{% else %}output/{{ project.id }}{% endif %}" placeholder="output/project-name">
+                                </div>
+                                <button class="button button-primary mt-sm" onclick="executeFileWrite()">
+                                    Write Files to Disk
+                                </button>
+                                {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written %}
+                                <div class="success-message mt-sm">
+                                    ✅ {{ protobot_data.step8_final_config.file_count or 'All' }} files written successfully
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Git Patch Panel -->
+                        <div class="execution-panel mb-lg">
+                            <div class="panel-header">
+                                <h3>🔀 Git Patch Generation</h3>
+                                <span class="badge {% if protobot_data.step8_final_config and protobot_data.step8_final_config.patch_created %}badge-approved{% else %}badge-not-started{% endif %}">
+                                    {% if protobot_data.step8_final_config and protobot_data.step8_final_config.patch_created %}Completed{% else %}Ready{% endif %}
+                                </span>
+                            </div>
+                            <div class="panel-body">
+                                <p style="margin-bottom: 12px;">Generate git patch for code changes</p>
+                                <div class="action-input">
+                                    <label>Commit Message:</label>
+                                    <textarea id="commit-msg" rows="3" placeholder="feat: Add prototype implementation for {{ project.name }}">{% if protobot_data.step8_final_config and protobot_data.step8_final_config.commit_message %}{{ protobot_data.step8_final_config.commit_message }}{% endif %}</textarea>
+                                    <button class="button button-secondary mt-sm" onclick="askForCommitMessage()" style="font-size: 0.85rem; padding: 6px 12px;">
+                                        💬 Ask AI for suggestion
+                                    </button>
+                                </div>
+                                <button class="button button-primary mt-sm" onclick="generatePatch()">
+                                    Generate Git Patch
+                                </button>
+                                {% if protobot_data.step8_final_config and protobot_data.step8_final_config.patch_created %}
+                                <div class="success-message mt-sm">
+                                    ✅ Patch created: <code>{{ protobot_data.step8_final_config.patch_file }}</code>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Communications Panel -->
+                        <div class="execution-panel mb-lg">
+                            <div class="panel-header">
+                                <h3>📧 Send Communications</h3>
+                                <span class="badge {% if protobot_data.step8_final_config and protobot_data.step8_final_config.comms_sent %}badge-approved{% else %}badge-not-started{% endif %}">
+                                    {% if protobot_data.step8_final_config and protobot_data.step8_final_config.comms_sent %}Sent{% else %}Ready{% endif %}
+                                </span>
+                            </div>
+                            <div class="panel-body">
+                                <p style="margin-bottom: 12px;">Send handoff email and calendar invite to catcher team</p>
+                                <div class="action-input">
+                                    <label>Recipients (Catcher Team):</label>
+                                    <input type="text" id="recipients" value="{% if protobot_data.step8_final_config and protobot_data.step8_final_config.catcher_emails %}{{ protobot_data.step8_final_config.catcher_emails }}{% elif catcher_emails %}{{ catcher_emails }}{% else %}pm@redhat.com, em@redhat.com, tl@redhat.com{% endif %}" placeholder="email1@redhat.com, email2@redhat.com">
+                                </div>
+                                <button class="button button-primary mt-sm" onclick="sendCommunications()">
+                                    Send Email & Calendar Invite
+                                </button>
+                                {% if protobot_data.step8_final_config and protobot_data.step8_final_config.comms_sent %}
+                                <div class="success-message mt-sm">
+                                    ✅ Communications sent successfully
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- JIRA Update Panel -->
+                        <div class="execution-panel">
+                            <div class="panel-header">
+                                <h3>📋 JIRA Update</h3>
+                                <span class="badge {% if protobot_data.step8_final_config and protobot_data.step8_final_config.jira_updated %}badge-approved{% else %}badge-not-started{% endif %}">
+                                    {% if protobot_data.step8_final_config and protobot_data.step8_final_config.jira_updated %}Updated{% else %}Ready{% endif %}
+                                </span>
+                            </div>
+                            <div class="panel-body">
+                                <p style="margin-bottom: 12px;">Update project JIRA ticket with handoff details</p>
+                                <div class="action-input">
+                                    <label>JIRA Ticket:</label>
+                                    <input type="text" id="jira-ticket" value="{% if protobot_data.step8_final_config and protobot_data.step8_final_config.jira_ticket %}{{ protobot_data.step8_final_config.jira_ticket }}{% else %}OCTO-XXX{% endif %}" placeholder="OCTO-123">
+                                </div>
+                                <button class="button button-primary mt-sm" onclick="updateJira()">
+                                    Update JIRA Ticket
+                                </button>
+                                {% if protobot_data.step8_final_config and protobot_data.step8_final_config.jira_updated %}
+                                <div class="success-message mt-sm">
+                                    ✅ JIRA ticket updated: <a href="{{ protobot_data.step8_final_config.jira_url }}" target="_blank">{{ protobot_data.step8_final_config.jira_ticket }}</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Completion Progress -->
+                        <div class="completion-banner mt-lg" style="border-left: 4px solid {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written and protobot_data.step8_final_config.patch_created and protobot_data.step8_final_config.comms_sent and protobot_data.step8_final_config.jira_updated %}var(--rh-green){% else %}var(--rh-orange){% endif %};">
+                            {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written and protobot_data.step8_final_config.patch_created and protobot_data.step8_final_config.comms_sent and protobot_data.step8_final_config.jira_updated %}
+                            <h3 style="color: var(--rh-green);">🎉 Prototype Handoff Complete!</h3>
+                            <p>All artifacts have been generated and delivered to the catcher team.</p>
+                            <p style="margin-top: 12px; font-size: 0.9rem; color: var(--rh-gray-mid);">
+                                ✓ Files written to disk<br>
+                                ✓ Git patch generated<br>
+                                ✓ Communications sent<br>
+                                ✓ JIRA ticket updated
+                            </p>
+                            <button class="button button-primary mt-md" onclick="window.location.href='/'">
+                                Return to Dashboard
+                            </button>
+                            {% else %}
+                            <h3 style="color: var(--rh-orange);">⚠️ Complete All Handoff Tasks</h3>
+                            <p>You must complete all 4 handoff tasks before finishing the workflow.</p>
+                            <div style="margin-top: 16px; font-size: 0.9rem;">
+                                <p style="margin-bottom: 8px; font-weight: 600;">Handoff Progress:</p>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <div style="color: {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written %}var(--rh-green){% else %}var(--rh-gray-mid){% endif %};">
+                                        {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written %}✓{% else %}☐{% endif %} Write Files to Disk
+                                    </div>
+                                    <div style="color: {% if protobot_data.step8_final_config and protobot_data.step8_final_config.patch_created %}var(--rh-green){% else %}var(--rh-gray-mid){% endif %};">
+                                        {% if protobot_data.step8_final_config and protobot_data.step8_final_config.patch_created %}✓{% else %}☐{% endif %} Generate Git Patch
+                                    </div>
+                                    <div style="color: {% if protobot_data.step8_final_config and protobot_data.step8_final_config.comms_sent %}var(--rh-green){% else %}var(--rh-gray-mid){% endif %};">
+                                        {% if protobot_data.step8_final_config and protobot_data.step8_final_config.comms_sent %}✓{% else %}☐{% endif %} Send Communications
+                                    </div>
+                                    <div style="color: {% if protobot_data.step8_final_config and protobot_data.step8_final_config.jira_updated %}var(--rh-green){% else %}var(--rh-gray-mid){% endif %};">
+                                        {% if protobot_data.step8_final_config and protobot_data.step8_final_config.jira_updated %}✓{% else %}☐{% endif %} Update JIRA Ticket
+                                    </div>
+                                </div>
+                            </div>
+                            <p style="margin-top: 16px; padding: 12px; background-color: var(--rh-gray-lighter); border-radius: var(--border-radius-sm); font-size: 0.85rem; color: var(--rh-gray-mid);">
+                                💡 <strong>Tip:</strong> Complete each task above in order. The "Return to Dashboard" button will appear once all tasks are finished.
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Right Panel: Chat -->
+                <div>
+                    <div class="chat-panel">
+                        <div class="chat-header">
+                            <h3>ProtoBot Chat</h3>
+                            <span class="chat-context-badge" id="chat-context-badge">Blueprint Agent</span>
+                        </div>
+                        <div class="chat-messages" id="chat-messages">
+                            {% if chat_data %}
+                                {% for message in chat_data %}
+                                <div class="chat-message {% if message.role == 'user' %}user-message{% else %}assistant-message{% endif %}">
+                                    <div class="message-role">{{ message.role|title }}</div>
+                                    <div class="message-content">{{ message.content }}</div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="chat-placeholder">
+                                    <p><strong>💬 ProtoBot Blueprint Agent</strong></p>
+                                    <p>Ask questions about research, technical design, or prototype development.</p>
+                                    <p style="margin-top: 12px; font-size: 14px; color: var(--rh-gray-mid);">
+                                        Examples: "Explain the research findings" • "What security risks should we consider?" • "How does this fit Red Hat products?"
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="chat-input">
+                            <textarea placeholder="Ask ProtoBot a question..." rows="3"></textarea>
+                            <button class="button button-primary">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.phase-progress {
+    margin-bottom: 32px;
+}
+
+.phase-progress-bar {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.phase-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.phase-step.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.phase-step.clickable:hover {
+    transform: translateY(-2px);
+}
+
+.phase-step.clickable:hover .phase-number {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.phase-step.clickable:hover .phase-label {
+    color: var(--rh-red);
+}
+
+.phase-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+    border: 3px solid var(--rh-gray-light);
+    background-color: var(--rh-white);
+    color: var(--rh-gray-mid);
+}
+
+.phase-step.completed .phase-number {
+    background-color: var(--rh-green);
+    border-color: var(--rh-green);
+    color: var(--rh-white);
+}
+
+.phase-step.active .phase-number {
+    background-color: var(--rh-red);
+    border-color: var(--rh-red);
+    color: var(--rh-white);
+}
+
+.phase-label {
+    font-size: 0.75rem;
+    color: var(--rh-gray-mid);
+    text-align: center;
+}
+
+.phase-step.active .phase-label {
+    color: var(--rh-red);
+    font-weight: 600;
+}
+
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.task-item {
+    padding: 16px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--rh-gray-lightest);
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.task-source {
+    font-weight: 700;
+    color: var(--rh-red);
+    font-size: 0.9rem;
+}
+
+.task-lead {
+    margin-bottom: 8px;
+    color: var(--rh-gray-dark);
+}
+
+.task-action {
+    color: var(--rh-gray-mid);
+    font-size: 0.9rem;
+}
+
+.findings-category {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rh-gray-lighter);
+}
+
+.findings-category:last-child {
+    border-bottom: none;
+}
+
+.findings-section {
+    margin-bottom: 16px;
+}
+
+.findings-section h4 {
+    color: var(--rh-red);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.findings-section ul {
+    margin-left: 20px;
+}
+
+.findings-section li {
+    margin-bottom: 6px;
+    color: var(--rh-gray-dark);
+}
+
+.risk-list li {
+    color: var(--rh-orange);
+}
+
+.question-list li {
+    color: var(--rh-blue);
+    font-style: italic;
+}
+
+.chat-panel {
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+    background-color: var(--rh-gray-lightest);
+}
+
+.chat-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--rh-gray-light);
+    background-color: var(--rh-white);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--rh-red);
+}
+
+.chat-context-badge {
+    font-size: 12px;
+    padding: 4px 12px;
+    background-color: var(--rh-blue-light);
+    color: var(--rh-blue);
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--rh-gray-mid);
+    font-style: italic;
+    text-align: center;
+    padding: 24px;
+}
+
+.chat-message {
+    padding: 12px;
+    border-radius: var(--border-radius-sm);
+    max-width: 85%;
+}
+
+.user-message {
+    align-self: flex-end;
+    background-color: var(--rh-red);
+    color: var(--rh-white);
+}
+
+.assistant-message {
+    align-self: flex-start;
+    background-color: var(--rh-white);
+    border: 1px solid var(--rh-gray-light);
+}
+
+.message-role {
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+}
+
+.message-content {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.chat-input {
+    padding: 16px;
+    border-top: 1px solid var(--rh-gray-light);
+    background-color: var(--rh-white);
+}
+
+.chat-input textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    font-family: var(--font-text);
+    margin-bottom: 8px;
+    resize: none;
+}
+
+.chat-input button {
+    width: 100%;
+}
+
+.editable-field {
+    padding: 2px 4px;
+    border-radius: 3px;
+    cursor: text;
+}
+
+.editable-field:hover {
+    background-color: var(--rh-gray-lightest);
+}
+
+.editable-field:focus {
+    outline: 2px solid var(--rh-red);
+    background-color: var(--rh-white);
+}
+
+.qa-item {
+    margin-bottom: 32px;
+    padding: 20px;
+    border: 2px solid var(--rh-red);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--rh-gray-lightest);
+}
+
+.qa-question {
+    margin-bottom: 16px;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.qa-answer {
+    margin-top: 12px;
+}
+
+.qa-answer .answer-field {
+    min-height: 80px;
+    padding: 12px;
+    margin-top: 8px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--rh-white);
+    cursor: text;
+}
+
+.qa-answer .answer-field:focus {
+    outline: 2px solid var(--rh-red);
+    border-color: var(--rh-red);
+}
+
+.qa-answer .answer-field:empty:before {
+    content: attr(data-placeholder);
+    color: var(--rh-gray-mid);
+    font-style: italic;
+}
+
+.blueprint-section {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--rh-gray-light);
+}
+
+.blueprint-section:last-child {
+    border-bottom: none;
+}
+
+.blueprint-section h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.blueprint-item {
+    margin-bottom: 24px;
+}
+
+.blueprint-item h4 {
+    color: var(--rh-red);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.blueprint-item p {
+    line-height: 1.6;
+    color: var(--rh-gray-dark);
+}
+
+.blueprint-item ol {
+    margin-left: 20px;
+}
+
+.blueprint-item ol li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+    color: var(--rh-gray-dark);
+}
+
+.risk-mitigation-list li {
+    margin-bottom: 8px;
+    color: var(--rh-orange);
+}
+
+.recommendation-list li {
+    margin-bottom: 8px;
+    color: var(--rh-black);
+    font-weight: 500;
+}
+
+.approval-checklist {
+    margin: 24px 0;
+    padding: 20px;
+    background-color: var(--rh-gray-lightest);
+    border-left: 4px solid var(--rh-red);
+    border-radius: var(--border-radius-sm);
+}
+
+.approval-checklist h3 {
+    margin-top: 0;
+    color: var(--rh-red);
+}
+
+.approval-checklist ul {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0 0;
+}
+
+.approval-checklist li {
+    padding: 8px 0;
+    font-size: 1rem;
+}
+
+.execution-panel {
+    margin-bottom: 24px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--rh-white);
+}
+
+.panel-header {
+    padding: 16px 20px;
+    background-color: var(--rh-gray-lightest);
+    border-bottom: 1px solid var(--rh-gray-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    margin: 0;
+    color: var(--rh-black);
+    font-size: 1.1rem;
+}
+
+.panel-body {
+    padding: 20px;
+}
+
+.artifact-list {
+    margin-top: 12px;
+}
+
+.artifact-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.artifact-item:hover {
+    background-color: var(--rh-gray-lightest);
+}
+
+.artifact-icon {
+    font-size: 1.2rem;
+}
+
+.artifact-name {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+}
+
+.artifact-type {
+    font-size: 0.75rem;
+}
+
+/* Step 7: Validation */
+.validation-panel {
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--rh-white);
+}
+
+.validation-checklist {
+    padding: 20px;
+}
+
+.checklist-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 8px;
+    background-color: var(--rh-gray-lightest);
+    border-radius: 4px;
+}
+
+.checklist-item input[type="checkbox"] {
+    margin-right: 12px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checklist-item label {
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--rh-black);
+}
+
+/* Step 8: Handoff */
+.action-input {
+    margin-bottom: 12px;
+}
+
+.action-input label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--rh-black);
+    font-size: 0.9rem;
+}
+
+.action-input input[type="text"],
+.action-input textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--rh-gray-mid);
+    border-radius: 4px;
+    font-family: var(--font-primary);
+    font-size: 0.95rem;
+}
+
+.action-input textarea {
+    resize: vertical;
+    font-family: var(--font-mono);
+}
+
+.success-message {
+    padding: 12px;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    color: #155724;
+    font-size: 0.9rem;
+}
+
+.success-message code {
+    background-color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+}
+
+.completion-banner {
+    padding: 24px;
+    background-color: var(--rh-white);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+    border-left: 4px solid var(--rh-orange);
+}
+
+.completion-banner h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.5rem;
+    color: var(--rh-black);
+}
+
+.completion-banner p {
+    margin: 0 0 16px 0;
+    font-size: 1rem;
+    color: var(--rh-black);
+}
+
+.completion-banner p:last-child {
+    margin-bottom: 0;
+}
+
+.mt-sm { margin-top: 12px; }
+.mt-md { margin-top: 16px; }
+.mt-lg { margin-top: 24px; }
+.mb-lg { margin-bottom: 24px; }
+</style>
+
+<script>
+// Chat functionality
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.querySelector('.chat-input textarea');
+const chatSendBtn = document.querySelector('.chat-input button');
+const chatContextBadge = document.getElementById('chat-context-badge');
+const projectId = '{{ project.id }}';
+let chatContext = 'blueprint';  // ProtoBot context - can be 'blueprint' or 'orchestrator'
+
+// ============================================================================
+// Step Navigation
+// ============================================================================
+
+async function navigateToStep(stepNumber) {
+    // Validate step number
+    if (stepNumber < 1 || stepNumber > 8) {
+        return;
+    }
+
+    // Update session to new step
+    try {
+        const response = await fetch('/api/protobot/navigate-step', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                step: stepNumber
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to navigate to step');
+        }
+
+        // Reload page to show new step
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Navigation error:', error);
+        alert('Failed to navigate to step. Please try again.');
+    }
+}
+
+// Update chat context based on current step or user preference
+function updateChatContext(newContext) {
+    chatContext = newContext;
+    if (chatContextBadge) {
+        const contextLabels = {
+            'blueprint': 'Blueprint Agent',
+            'orchestrator': 'Orchestrator',
+            'ideabot': 'IdeaBot'
+        };
+        chatContextBadge.textContent = contextLabels[newContext] || 'ProtoBot';
+    }
+}
+
+function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function addMessage(role, content) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${role === 'user' ? 'user-message' : 'assistant-message'}`;
+
+    messageDiv.innerHTML = `
+        <div class="message-role">${role}</div>
+        <div class="message-content">${content}</div>
+    `;
+
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+async function sendMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    // Check if streaming is enabled (can add a checkbox later)
+    const useStreaming = false; // Set to true to enable streaming demo
+
+    // Add user message
+    addMessage('user', message);
+    chatInput.value = '';
+
+    // Disable input while waiting
+    chatSendBtn.disabled = true;
+    chatInput.disabled = true;
+
+    if (useStreaming) {
+        // Streaming mode using SSE
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message assistant-message';
+        messageDiv.innerHTML = `
+            <div class="message-role">assistant</div>
+            <div class="message-content streaming-content"></div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        const contentEl = messageDiv.querySelector('.message-content');
+        let fullContent = '';
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    project_id: projectId,
+                    context: chatContext,
+                    message: message,
+                    stream: true
+                })
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = JSON.parse(line.slice(6));
+
+                        if (data.error) {
+                            contentEl.textContent += `\n[Error: ${data.error}]`;
+                            break;
+                        }
+
+                        if (data.content) {
+                            fullContent += data.content;
+                            contentEl.textContent = fullContent;
+                            scrollToBottom();
+                        }
+
+                        if (data.done) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Process field-aware commands
+            await processFieldAwareResponse(message, fullContent);
+
+        } catch (error) {
+            console.error('Streaming chat error:', error);
+            contentEl.textContent = 'Sorry, I encountered an error. Please try again.';
+        } finally {
+            chatSendBtn.disabled = false;
+            chatInput.disabled = false;
+            chatInput.focus();
+        }
+
+    } else {
+        // Non-streaming mode (original)
+        try {
+            // Call chat API
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    project_id: projectId,
+                    context: chatContext,
+                    message: message
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Chat request failed');
+            }
+
+            const data = await response.json();
+
+            // Add assistant response
+            addMessage('assistant', data.content);
+
+            // Process field-aware commands based on user message
+            await processFieldAwareResponse(message, data.content);
+
+        } catch (error) {
+            console.error('Chat error:', error);
+            addMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+        } finally {
+            // Re-enable input
+            chatSendBtn.disabled = false;
+            chatInput.disabled = false;
+            chatInput.focus();
+        }
+    }
+}
+
+// Process responses for field-aware assistance
+async function processFieldAwareResponse(userMessage, aiResponse) {
+    const lowerMsg = userMessage.toLowerCase();
+
+    // Detect requests for field help
+    if (lowerMsg.includes('commit message') || lowerMsg.includes('git message')) {
+        highlightField('commit-msg');
+    } else if (lowerMsg.includes('output dir') || lowerMsg.includes('where to write')) {
+        highlightField('output-dir');
+    } else if (lowerMsg.includes('recipients') || lowerMsg.includes('who to email')) {
+        highlightField('recipients');
+    } else if (lowerMsg.includes('jira') || lowerMsg.includes('ticket')) {
+        highlightField('jira-ticket');
+    }
+
+    // Auto-detect suggestions in AI response and offer to apply them
+    if (aiResponse.includes('```') && (lowerMsg.includes('suggest') || lowerMsg.includes('help me write'))) {
+        const codeBlock = extractCodeBlock(aiResponse);
+        if (codeBlock && document.getElementById('commit-msg')) {
+            if (confirm('Apply this suggestion to the commit message field?')) {
+                insertFieldValue('commit-msg', codeBlock);
+            }
+        }
+    }
+}
+
+function highlightField(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (field) {
+        field.style.border = '2px solid var(--rh-blue)';
+        field.focus();
+        setTimeout(() => {
+            field.style.border = '';
+        }, 2000);
+    }
+}
+
+function extractCodeBlock(text) {
+    const match = text.match(/```[\s\S]*?\n([\s\S]*?)```/);
+    return match ? match[1].trim() : null;
+}
+
+chatSendBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+// Auto-scroll on page load
+window.addEventListener('DOMContentLoaded', () => {
+    scrollToBottom();
+});
+
+// Phase progression functions
+async function generateLeads() {
+    const progress = aiProgress.show('Generating Research Leads', 60);
+    progress.updateStatus('AI is analyzing IdeaBot answers to identify research vectors...');
+
+    try {
+        progress.updateProgress(20);
+
+        const response = await fetch('/api/protobot/generate-leads', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateProgress(80);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate research leads');
+        }
+
+        const data = await response.json();
+
+        progress.updateProgress(100);
+        progress.updateStatus(`Generated ${data.leads.length} research leads!`);
+
+        notify.success(`Generated ${data.leads.length} research leads!`);
+
+        // Reload page to show leads
+        setTimeout(() => {
+            progress.complete();
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Error generating leads:', error);
+        progress.cancel();
+        notify.error(`Failed to generate research leads: ${error.message}`);
+    }
+}
+
+function showGenerateStatus(message, type = 'info') {
+    const statusEl = document.getElementById('generate-status');
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+}
+
+function collectLeads() {
+    const leads = [];
+    const leadItems = document.querySelectorAll('.task-item[data-lead-index]');
+
+    leadItems.forEach(item => {
+        const source = item.querySelector('.task-source').textContent;
+        const leadText = item.querySelector('[data-field="lead"]').textContent.trim();
+        const action = item.querySelector('[data-field="action"]').textContent.trim();
+
+        leads.push({
+            source: source,
+            lead: leadText,
+            action: action
+        });
+    });
+
+    return leads;
+}
+
+async function saveLeads() {
+    const leads = collectLeads();
+
+    try {
+        const response = await fetch('/api/protobot/save-leads', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                leads: leads
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save leads');
+        }
+
+        alert('✓ Research leads saved successfully');
+
+    } catch (error) {
+        console.error('Error saving leads:', error);
+        alert('✗ Failed to save research leads');
+    }
+}
+
+async function regenerateLeads() {
+    if (!confirm('Regenerate research leads? This will replace your current leads.')) {
+        return;
+    }
+
+    await generateLeads();
+}
+
+async function executeResearch() {
+    // This is called from Step 1 when leads are ready
+    const leads = collectLeads();
+
+    if (leads.length === 0) {
+        alert('No research leads found. Generate leads first.');
+        return;
+    }
+
+    if (!confirm(`Execute research across all 5 vectors based on ${leads.length} leads?\n\nThis may take 1-2 minutes.`)) {
+        return;
+    }
+
+    // Save leads first if they've been edited
+    await saveLeads();
+
+    // Navigate to Step 2 and execute research
+    await executeResearchPhase();
+}
+
+async function executeResearchPhase() {
+    const progress = aiProgress.show('Executing Research Phase', 120);
+    progress.updateStatus('AI is conducting research across 5 vectors...');
+
+    try {
+        progress.updateProgress(15);
+
+        const response = await fetch('/api/protobot/execute-research', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Research execution failed');
+        }
+
+        const data = await response.json();
+
+        progress.updateProgress(100);
+        progress.updateStatus('Research complete across all 5 vectors!');
+
+        notify.success('Research complete!');
+
+        // Reload page to show Step 2 findings
+        setTimeout(() => {
+            progress.complete();
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Research execution error:', error);
+        progress.cancel();
+        notify.error(`Research failed: ${error.message}`);
+    }
+}
+
+function showResearchStatus(message, type = 'info') {
+    const statusEl = document.getElementById('research-status');
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+}
+
+async function generateFollowupQuestions() {
+    if (!confirm('Generate 5 targeted follow-up questions based on research findings?')) {
+        return;
+    }
+
+    await generateQuestionsPhase();
+}
+
+async function generateQuestionsPhase() {
+    const progress = aiProgress.show('Generating Follow-up Questions', 60);
+    progress.updateStatus('AI is analyzing research gaps...');
+
+    try {
+        progress.updateProgress(20);
+
+        const response = await fetch('/api/protobot/generate-questions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateProgress(80);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Question generation failed');
+        }
+
+        const data = await response.json();
+
+        progress.updateProgress(100);
+        progress.updateStatus(`Generated ${data.questions.length} targeted questions!`);
+
+        notify.success(`Generated ${data.questions.length} questions!`);
+
+        // Reload page to show Step 3
+        setTimeout(() => {
+            progress.complete();
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Question generation error:', error);
+        progress.cancel();
+        notify.error(`Failed to generate questions: ${error.message}`);
+    }
+}
+
+function showQAStatus(message, type = 'info') {
+    const statusEl = document.getElementById('qa-status');
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+}
+
+function collectAnswers() {
+    const qa = [];
+    const qaItems = document.querySelectorAll('.qa-item[data-qa-index]');
+
+    qaItems.forEach(item => {
+        const question = item.querySelector('.qa-question').textContent.replace(/^Q\d+:\s*/, '').trim();
+        const answer = item.querySelector('.answer-field').textContent.trim();
+
+        qa.push({
+            question: question,
+            answer: answer
+        });
+    });
+
+    return qa;
+}
+
+async function saveAnswers() {
+    const qa = collectAnswers();
+
+    try {
+        const response = await fetch('/api/protobot/save-answers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                qa: qa
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save answers');
+        }
+
+        alert('✓ Answers saved successfully');
+
+    } catch (error) {
+        console.error('Error saving answers:', error);
+        alert('✗ Failed to save answers');
+    }
+}
+
+async function regenerateQuestions() {
+    if (!confirm('Regenerate follow-up questions? This will replace your current questions.')) {
+        return;
+    }
+
+    await generateQuestionsPhase();
+}
+
+async function generateBlueprint() {
+    // Save answers first
+    const qa = collectAnswers();
+    const unanswered = qa.filter(q => !q.answer || q.answer.trim() === '');
+
+    if (unanswered.length > 0) {
+        if (!confirm(`${unanswered.length} questions are unanswered. Generate blueprint anyway?`)) {
+            return;
+        }
+    }
+
+    await saveAnswers();
+    await generateBlueprintPhase();
+}
+
+async function generateBlueprintPhase() {
+    const progress = aiProgress.show('Synthesizing Technical Blueprint', 120);
+    progress.updateStatus('AI is analyzing research and Q&A to create comprehensive blueprint...');
+
+    try {
+        progress.updateProgress(15);
+
+        const response = await fetch('/api/protobot/generate-blueprint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Blueprint generation failed');
+        }
+
+        const data = await response.json();
+
+        progress.updateProgress(100);
+        progress.updateStatus('Technical blueprint synthesized!');
+
+        notify.success('Blueprint generated!');
+
+        // Reload page to show Step 4
+        setTimeout(() => {
+            progress.complete();
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Blueprint generation error:', error);
+        progress.cancel();
+        notify.error(`Blueprint generation failed: ${error.message}`);
+    }
+}
+
+function showBlueprintStatus(message, type = 'info') {
+    const statusEl = document.getElementById('blueprint-status');
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+}
+
+async function proceedToHIL() {
+    if (!confirm('Submit blueprint for HIL approval?')) {
+        return;
+    }
+
+    // Just advance to Step 5
+    await update_protobot_session(projectId, { current_step: 5 });
+    window.location.reload();
+}
+
+async function approveBlueprint() {
+    if (!confirm('Approve this blueprint and proceed to execution?\n\nThis will start ProtoBot code generation.')) {
+        return;
+    }
+
+    showApprovalStatus('Approving blueprint...', 'info');
+
+    try {
+        const response = await fetch('/api/protobot/approve-blueprint', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                approved_by: 'Human-in-Loop'
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Approval failed');
+        }
+
+        showApprovalStatus('✓ Blueprint approved! Advancing to execution...', 'success');
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+
+    } catch (error) {
+        console.error('Approval error:', error);
+        showApprovalStatus(`✗ ${error.message}`, 'error');
+    }
+}
+
+function showApprovalStatus(message, type = 'info') {
+    const statusEl = document.getElementById('approval-status');
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+}
+
+function proceedToExecution() {
+    window.location.reload();
+}
+
+async function generateCode() {
+    const progress = aiProgress.show('Generating Code Artifacts', 120);
+    progress.updateStatus('AI is creating application source code, tests, and build scripts...');
+
+    try {
+        progress.updateProgress(15);
+
+        const response = await fetch('/api/protobot/generate-code', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Code generation failed');
+        }
+
+        const data = await response.json();
+
+        progress.updateProgress(100);
+        progress.updateStatus(`Generated ${data.artifacts.length} code artifacts!`);
+
+        notify.success(`Generated ${data.artifacts.length} files!`);
+
+        setTimeout(() => {
+            progress.complete();
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Code generation error:', error);
+        progress.cancel();
+        notify.error(`Code generation failed: ${error.message}`);
+    }
+}
+
+function showCodeStatus(message, type = 'info') {
+    const statusEl = document.getElementById('code-status');
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+}
+
+async function generateCommunications() {
+    const progress = aiProgress.show('Generating Communications', 90);
+    progress.updateStatus('AI is creating handoff email, calendar invite, and blog post...');
+
+    try {
+        progress.updateProgress(20);
+
+        const response = await fetch('/api/protobot/generate-communications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Communications generation failed');
+        }
+
+        progress.updateProgress(100);
+        progress.updateStatus('Communications generated!');
+
+        notify.success('Communications generated!');
+
+        setTimeout(() => {
+            progress.complete();
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Communications generation error:', error);
+        progress.cancel();
+        notify.error(`Communications generation failed: ${error.message}`);
+    }
+}
+
+function showCommsStatus(message, type = 'info') {
+    const statusEl = document.getElementById('comms-status');
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+}
+
+async function generateInfrastructure() {
+    const progress = aiProgress.show('Generating Infrastructure', 120);
+    progress.updateStatus('AI is creating Containerfile, Kubernetes manifests, and deployment docs...');
+
+    try {
+        progress.updateProgress(15);
+
+        const response = await fetch('/api/protobot/generate-infrastructure', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateProgress(85);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Infrastructure generation failed');
+        }
+
+        const data = await response.json();
+
+        progress.updateProgress(100);
+        progress.updateStatus(`Generated ${data.artifacts.length} infrastructure artifacts!`);
+
+        notify.success(`Generated ${data.artifacts.length} infrastructure files!`);
+
+        setTimeout(() => {
+            progress.complete();
+            window.location.reload();
+        }, 1000);
+
+    } catch (error) {
+        console.error('Infrastructure generation error:', error);
+        progress.cancel();
+        notify.error(`Infrastructure generation failed: ${error.message}`);
+    }
+}
+
+function showInfraStatus(message, type = 'info') {
+    const statusEl = document.getElementById('infra-status');
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.style.display = 'block';
+
+    if (type === 'success') {
+        statusEl.style.backgroundColor = 'var(--rh-green)';
+        statusEl.style.color = 'white';
+    } else if (type === 'error') {
+        statusEl.style.backgroundColor = 'var(--rh-red)';
+        statusEl.style.color = 'white';
+    } else {
+        statusEl.style.backgroundColor = 'var(--rh-gray-lighter)';
+        statusEl.style.color = 'var(--rh-black)';
+    }
+}
+
+function viewArtifact(filename, content) {
+    // Open in new window with syntax highlighting
+    const newWindow = window.open('', '_blank', 'width=800,height=600');
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>${filename}</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        h1 {
+            color: #569cd6;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+        pre {
+            background-color: #1e1e1e;
+            padding: 16px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .controls {
+            margin-bottom: 16px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1177bb;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <button onclick="copyToClipboard()">Copy to Clipboard</button>
+        <button onclick="downloadFile()">Download</button>
+    </div>
+    <h1>${filename}</h1>
+    <pre id="content">${escapeHtml(content)}</pre>
+
+    <scr` + `ipt>
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function copyToClipboard() {
+            const content = document.getElementById('content').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+
+        function downloadFile() {
+            const content = document.getElementById('content').textContent;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '${filename}';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </scr` + `ipt>
+</body>
+</html>
+    `;
+
+    newWindow.document.write(html);
+    newWindow.document.close();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function proceedToQA() {
+    alert('Q&A workflow will be implemented in P3-004!\n\nThis will advance to Step 3 where you can answer follow-up questions.');
+}
+
+async function proceedToValidation() {
+    if (!confirm('All artifacts generated successfully. Proceed to validation phase?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/protobot/proceed-to-validation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to proceed to validation');
+        }
+
+        alert('✓ Proceeding to validation phase...');
+        window.location.reload();
+    } catch (error) {
+        console.error('Error proceeding to validation:', error);
+        alert('❌ Error: ' + error.message);
+    }
+}
+
+// ============================================================================
+// Step 7: Validation
+// ============================================================================
+
+async function approveValidation() {
+    const checklist = {
+        code: document.getElementById('val-code')?.checked || false,
+        infra: document.getElementById('val-infra')?.checked || false,
+        docs: document.getElementById('val-docs')?.checked || false,
+        security: document.getElementById('val-security')?.checked || false,
+        comms: document.getElementById('val-comms')?.checked || false
+    };
+
+    // Check if all items are validated
+    const allValidated = Object.values(checklist).every(v => v);
+    if (!allValidated) {
+        alert('Please complete all validation checklist items before proceeding.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/protobot/approve-validation', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                validation: checklist
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Validation approval failed');
+        }
+
+        alert('✅ Validation approved! Proceeding to Step 8: Handoff');
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Validation error:', error);
+        alert('Error approving validation. Please try again.');
+    }
+}
+
+// ============================================================================
+// Step 8: Handoff & Execution
+// ============================================================================
+
+async function executeFileWrite() {
+    const outputDir = document.getElementById('output-dir')?.value || `output/${projectId}`;
+    const btn = event.target;
+    const originalText = btn.textContent;
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Writing files...';
+
+    try {
+        const response = await fetch('/api/protobot/execute-files', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                output_dir: outputDir
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'File execution failed');
+        }
+
+        const data = await response.json();
+
+        // Show success message with file list
+        let fileList = '';
+        if (data.files && data.files.length > 0) {
+            fileList = '\n\nFiles created:\n' + data.files.slice(0, 5).map(f => `- ${f.filename}`).join('\n');
+            if (data.files.length > 5) {
+                fileList += `\n... and ${data.files.length - 5} more`;
+            }
+        }
+
+        alert(`✅ Successfully wrote ${data.file_count} files to ${outputDir}${fileList}`);
+        window.location.reload();
+
+    } catch (error) {
+        console.error('File execution error:', error);
+        alert(`❌ Error writing files: ${error.message}`);
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+async function generatePatch() {
+    const commitMsg = document.getElementById('commit-msg')?.value || 'feat: Add prototype implementation';
+
+    if (!commitMsg.trim()) {
+        alert('Please enter a commit message');
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.textContent;
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating patch...';
+
+    try {
+        const response = await fetch('/api/protobot/generate-patch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                commit_message: commitMsg
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Patch generation failed');
+        }
+
+        const data = await response.json();
+        alert(`✅ Git patch generated successfully!\n\nFile: ${data.patch_file}\n\nYou can apply this patch with:\ngit apply ${data.patch_file}`);
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Patch generation error:', error);
+        alert(`❌ Error generating patch: ${error.message}`);
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+async function sendCommunications() {
+    const recipients = document.getElementById('recipients')?.value || '';
+
+    if (!recipients || !recipients.includes('@')) {
+        alert('Please enter valid recipient email addresses (comma-separated).');
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.textContent;
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Sending communications...';
+
+    try {
+        const response = await fetch('/api/protobot/send-communications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                recipients: recipients
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Communication send failed');
+        }
+
+        const recipientList = recipients.split(',').map(r => r.trim());
+        alert(`✅ Communications sent successfully!\n\nRecipients (${recipientList.length}):\n${recipientList.join('\n')}\n\nSent:\n- Handoff email\n- Calendar invite (45 min meeting)`);
+        window.location.reload();
+
+    } catch (error) {
+        console.error('Communication send error:', error);
+        alert(`❌ Error sending communications: ${error.message}`);
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+async function updateJira() {
+    const jiraTicket = document.getElementById('jira-ticket')?.value || '';
+
+    if (!jiraTicket || jiraTicket === 'OCTO-XXX') {
+        alert('Please enter a valid JIRA ticket number (e.g., OCTO-123).');
+        return;
+    }
+
+    // Validate JIRA ticket format
+    if (!jiraTicket.match(/^[A-Z]+-\d+$/)) {
+        alert('Invalid JIRA ticket format. Expected format: PROJECT-123');
+        return;
+    }
+
+    const btn = event.target;
+    const originalText = btn.textContent;
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Updating JIRA...';
+
+    try {
+        const response = await fetch('/api/protobot/update-jira', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                jira_ticket: jiraTicket
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'JIRA update failed');
+        }
+
+        const data = await response.json();
+        alert(`✅ JIRA ticket ${jiraTicket} updated successfully!\n\nView ticket:\n${data.jira_url}\n\nUpdated with handoff details and artifact locations.`);
+        window.location.reload();
+
+    } catch (error) {
+        console.error('JIRA update error:', error);
+        alert(`❌ Error updating JIRA: ${error.message}`);
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+// ============================================================================
+// Field-Aware Chat Helper
+// ============================================================================
+
+// Helper to insert AI-suggested content into fields
+function insertFieldValue(fieldId, value) {
+    const field = document.getElementById(fieldId);
+    if (field) {
+        field.value = value;
+        field.focus();
+    }
+}
+
+// Quick action: Ask AI for commit message suggestion
+async function askForCommitMessage() {
+    chatInput.value = 'Please suggest a comprehensive git commit message for this prototype, including key features and technical details.';
+    await sendMessage();
+}
+
+// Quick action: Ask AI for JIRA update suggestion
+async function askForJiraUpdate() {
+    chatInput.value = 'What should I include in the JIRA ticket update for this handoff?';
+    await sendMessage();
+}
+
+// Quick action: Ask AI for recipient suggestions
+async function askForRecipients() {
+    chatInput.value = 'Who should receive the handoff communications? Help me format the recipient list.';
+    await sendMessage();
+}
+
+// Generate smart commit message
+function generateSmartCommitMessage() {
+    const commitMsg = `feat: Add ${projectId} prototype implementation
+
+This prototype includes:
+- Complete source code with unit tests
+- Multi-stage Containerfile with UBI9 base images
+- Kubernetes/OpenShift deployment manifests
+- Security hardening with non-root user and network policies
+- Comprehensive documentation and deployment guide
+
+Generated by ProtoBot for Red Hat OCTO technology transfer.`;
+
+    insertFieldValue('commit-msg', commitMsg);
+}
+
+// Chat command processor for field-aware assistance
+function processChatCommand(message) {
+    const lowerMsg = message.toLowerCase();
+
+    // Suggest commit messages
+    if (lowerMsg.includes('commit message') || lowerMsg.includes('git patch')) {
+        generateSmartCommitMessage();
+    }
+
+    // Suggest output directory
+    if (lowerMsg.includes('output') && lowerMsg.includes('directory')) {
+        insertFieldValue('output-dir', `output/${projectId}`);
+    }
+
+    // Suggest JIRA format
+    if (lowerMsg.includes('jira') && lowerMsg.includes('ticket')) {
+        const currentValue = document.getElementById('jira-ticket')?.value || '';
+        if (currentValue === 'OCTO-XXX' || currentValue === '') {
+            insertFieldValue('jira-ticket', 'OCTO-');
+        }
+    }
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,137 @@
+Red Hat is an enterprise software company with an open source development model. Our organization is the Office of the CTO, which is a division inside Global Engineering in Red Hat. Review the octo-definition.md file in the repository root directory for a full description of the organization.
+
+The Emerging Technologies team's role is to identify highly strategic technologies that are emerging that are not currently on our product roadmaps, evaluate them for suitability and develop them to the point that they can be graduated into our product.
+
+Our strategic focus is defined in the file called strategic-focus.txt in the repository root directory. Use that as context for evaluating strategic alignment.
+
+ProtoBot is the second agent in the Hermes pipeline. It takes approved ideas from IdeaBot and transforms them into working prototypes with all supporting artifacts needed for a transfer decision.
+
+ProtoBot Workflow
+
+ProtoBot operates in two phases with a Human-in-the-Loop (HIL) checkpoint between them. It uses five agents: a Blueprint Agent for Phase 1 research, an Orchestrator Agent that coordinates Phase 2, and three specialized implementation agents (Code Generation, Infrastructure & Security, Operations & Comms). The system prompts for all five agents are defined in protobot-prompts.md.
+
+Phase 1: Discovery & Blueprint
+
+The Blueprint Agent ingests the structured payload of an approved idea from the Dashboard (the IdeaBot output) and conducts iterative, evidence-based research before producing a Technical Blueprint. This is NOT a single-pass evaluation — the agent follows every lead from the IdeaBot payload and does the heavy lifting before presenting anything to the HIL.
+
+The workflow is:
+
+1. Context Ingestion & Lead Identification: Parse every field in the IdeaBot payload (project name, strategic priority, catcher org, catcher names, market rationale, etc.) and treat each as a research lead to follow.
+
+2. Autonomous Internet Research: Use web search and web fetch to investigate each of the five blueprint vectors with real, current data:
+   - Upstream Ecosystem & Community: Find the actual GitHub repo, check commit activity, contributors, release cadence, corporate backing.
+   - Strategic Longevity: Research the technology trend with industry data, vendor roadmaps, competing approaches.
+   - Red Hat Product Fit: Research the target product's current capabilities and where this fits.
+   - Safety & Security Posture: Research known security considerations, CVEs, compliance requirements.
+   - Technical & Architectural Constraints: Find benchmarks, hardware specs, dependency requirements.
+
+3. Gap Analysis: After initial research, identify what's still assumption vs. evidence-backed.
+
+4. HIL Follow-Up Questions: Ask the HIL targeted, specific questions informed by the research already done (not lazy questions the agent could have answered itself). No more than 5 questions per round.
+
+5. Iterate: Conduct additional research based on HIL answers. Repeat the gap analysis and follow-up loop up to 3 rounds.
+
+6. Blueprint Generation: Only after research is complete, produce the structured Technical Blueprint. Every claim must cite evidence, reference HIL input, or explicitly flag assumptions. Each of the five vector sections includes Findings, Risks, and Open Questions.
+
+7. HIL Blueprint Review: Present the blueprint for accept/edit/reject. Iterate on feedback until the HIL explicitly approves.
+
+The Blueprint Agent does not produce a blueprint until it has: visited the actual upstream repo, cross-referenced strategic-focus.txt, researched the target Red Hat product, identified at least 3 evidence-backed technical constraints, and completed at least one round of HIL follow-up questions.
+
+Phase 2: Implementation via Agent Teaming
+
+Once the HIL approves the blueprint, the Orchestrator Agent takes over. It constructs targeted context packages for each implementation agent, manages their execution order, cross-validates outputs, and compiles everything for HIL review.
+
+Execution Order (agents have real dependencies):
+
+Wave 1 (parallel):
+- Code Generation Agent — Needs only the blueprint context.
+- Operations & Comms Agent (partial) — Drafts the catcher email, calendar invite, and initial blog post using the blueprint and stakeholder list. Uses {{REPO_URL}} placeholders for links not yet available.
+
+Wave 2 (after Code Agent completes):
+- Infrastructure & Security Agent — Depends on the Code Agent's output (dependency manifest, entry points, runtime dependencies) to build the container and write correct manifests.
+
+Wave 3 (after all agents complete):
+- Operations & Comms Agent (finalize) — Updates the email and blog post with actual artifact details and repository links.
+
+Code Generation Agent:
+- Writes the application source code (Python, C++, Go, Rust, etc.)
+- Mirrors the specific upstream project's file layout, naming conventions, and coding patterns
+- Respects the blueprint's minimum viable prototype scope — builds a proof-of-concept, not production code
+- Writes unit tests for core functionality and hardware-specific code paths
+- Produces the dependency manifest (requirements.txt, CMakeLists.txt, go.mod, etc.) — the Infra Agent depends on this
+- Includes a Build & Test Summary with install, build, test, and prerequisite instructions
+- Implements security guardrails from the blueprint directly into the code
+- Does NOT generate infrastructure artifacts
+
+Infrastructure & Security Agent:
+- Generates Infrastructure-as-Code: Containerfiles (UBI9 base, multi-stage builds), Kubernetes/OpenShift manifests
+- Builds the Containerfile using the Code Agent's dependency manifest and entry point
+- Targets the OCTO Research Cloud: OpenShift 4.x, quay.io/redhat-et/ registry, octo-[project-name] namespace
+- Enforces hardware constraints via nodeSelectors, tolerations, device plugin requests
+- Implements security policies: least-privilege SCCs, NetworkPolicies, supply-chain signing (Sigstore/Cosign)
+- Produces a build pipeline (Tekton or Makefile) covering build → sign → push → deploy
+- Includes a Deployment Guide with prerequisites, step-by-step deploy, verification, and teardown
+- Does NOT write application source code
+
+Operations & Comms Agent:
+- Operates in two passes (Wave 1 and Wave 3), using {{REPO_URL}} placeholders until actual links are available
+- Drafts the catcher email: internal tone, direct and technical, addressed to catching PM/Eng Mgr/Tech Lead by name, with a clear ask to review and attend the checkpoint meeting
+- Generates a calendar invite: Transfer Decision Checkpoint, 45 min, proposed 2 weeks out, structured agenda with time allocations, conferencing link placeholder
+- Drafts a technical blog post for next.redhat.com: 800-1200 words, matches the next.redhat.com voice, covers the innovator's dilemma, technical overview, Red Hat portfolio relevance
+- Marks changes between passes with [UPDATED] tags
+
+Orchestrator Cross-Validation:
+After Wave 2, the Orchestrator systematically checks consistency between Code and Infra outputs:
+- Container image references match between Containerfile and manifests
+- Entry points and commands match between code and deployment manifest
+- Runtime dependencies in the code are installed in the Containerfile
+- Hardware targeting in code matches nodeSelectors in manifests
+- Port mappings, environment variables, and security contexts are aligned
+Mechanical mismatches are fixed directly; ambiguous mismatches are flagged for the HIL.
+
+HIL Final Review:
+The Orchestrator presents compiled artifacts in categories, each requiring explicit HIL approval:
+1. Code & Infrastructure artifacts — "Do you want to push these to the OCTO sandbox?"
+2. Catcher email — "Ready to send to [names]?"
+3. Meeting invite — "Confirm time and send?"
+4. Blog post — "Ready to stage for publication on next.redhat.com?"
+
+For code push: the default target is https://github.com/redhat-et/. The Orchestrator confirms with the HIL before pushing: "The default target is github.com/redhat-et/ — should I create a new repo there, or would you prefer a different organization or repo?"
+
+For communications artifacts (email, calendar, blog post): the HIL may choose per artifact to execute now, save to file, export to Google Doc, or skip. Different actions can be chosen for each.
+
+Orchestrator Failure Handling:
+When a sub-agent fails, the Orchestrator troubleshoots autonomously first (retry transient failures, re-invoke with better instructions, fill context gaps from the blueprint). It escalates to the HIL only when its own fix attempts fail, the problem requires human judgment, or it's unsure of the right approach. Before skipping any agent entirely, it asks the HIL: "I haven't been able to resolve this — would you like to help troubleshoot, or should I skip this and note it as a gap?"
+
+All agents report errors back to the Orchestrator with: what they were attempting, what blocked them, and what they need to proceed.
+
+Blueprint Persistence
+
+When the Blueprint Agent produces an approved blueprint, it must be persisted as a markdown file in the project's output directory (e.g., `[project-name]/blueprint.md`). The blueprint is also stored in the Dashboard database as a text field on the project row. This serves two purposes:
+- The Orchestrator reads the persisted blueprint to construct context packages for the implementation agents.
+- The Dashboard can link to the blueprint file for stakeholder visibility.
+
+If the HIL requests changes during review, the blueprint file is updated in place and the previous version is not retained (the iterative process is conversational, not versioned).
+
+Dashboard Integration
+
+ProtoBot reads approved ideas from the shared Dashboard (the same SQLite database used by IdeaBot). When ProtoBot completes:
+- Update the project row with ProtoBot status (Complete or Partial)
+- Add links to the generated code repository, blueprint document, and artifacts
+- Store the approved blueprint text in the database
+- Record any categories the HIL chose not to execute and their rationale
+- If the HIL rejects the blueprint, record the rationale
+
+Execution:
+
+Build ProtoBot as a working application integrated with the existing IdeaBot Dashboard.
+
+Use Python with FastAPI, extending the existing HTML/JS/CSS frontend, using the same SQLite database for persistence, and the Claude API for the blueprint generation and agent orchestration.
+
+We access Claude through Google Cloud Vertex AI (not the direct Anthropic API). Use AnthropicVertex from the anthropic SDK. Project ID: itpc-gcp-octo-eng-claude, region: us-east5. The model name format for Vertex uses @ not - before the date, e.g. claude-sonnet-4@20250514.
+
+The Blueprint Agent should load octo-definition.md and strategic-focus.txt from the repository root directory as context for its research. The implementation agents (Code, Infra, Ops) do not load these files directly — they receive the relevant context via the Orchestrator's context packages, which are derived from the approved blueprint.
+
+For the initial build, focus on Phase 1 (Blueprint generation with iterative research and HIL review). Phase 2 (Agent Teaming) can be stubbed with placeholder endpoints that demonstrate the orchestration pattern.
+
+Install dependencies, start the server, and confirm all endpoints work. Test the blueprint generation using the vllm-cpu scenario in protobot-test.txt. Make sure the app starts and the blueprint flow works end-to-end before telling me it's done.

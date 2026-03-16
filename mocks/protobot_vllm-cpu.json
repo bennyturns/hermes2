@@ -1,0 +1,265 @@
+{
+  "project_id": "vllm-cpu",
+  "current_step": 1,
+  "step1_research_leads": [
+    {
+      "source": "Project Name",
+      "lead": "vLLM CPU Platform",
+      "action": "Research vLLM project: GitHub stars, community activity, maintainer responsiveness, CPU optimization efforts"
+    },
+    {
+      "source": "Idea Description",
+      "lead": "CPU-optimized inference without GPU",
+      "action": "Investigate existing CPU inference solutions: llama.cpp, ONNX Runtime, Intel OpenVINO benchmarks and capabilities"
+    },
+    {
+      "source": "Catcher Product",
+      "lead": "Red Hat Inference Server",
+      "action": "Review RHIS architecture: current inference engines supported, integration patterns, deployment models"
+    },
+    {
+      "source": "Catcher PM",
+      "lead": "Harshal Ghodmare",
+      "action": "Understand product roadmap priorities: planned features, customer requests, competitive positioning"
+    },
+    {
+      "source": "Catcher TL",
+      "lead": "Joseph Groenenboom",
+      "action": "Technical constraints review: RHIS APIs, container requirements, performance SLOs, integration testing needs"
+    },
+    {
+      "source": "Strategic Priority",
+      "lead": "AI Inference Acceleration",
+      "action": "Research market trends: edge AI adoption, CPU vs GPU cost analysis, customer deployment patterns"
+    },
+    {
+      "source": "Slack Channel",
+      "lead": "#ai-inference",
+      "action": "Monitor channel for: customer pain points, team discussions, integration challenges, feature requests"
+    },
+    {
+      "source": "Technical Approach",
+      "lead": "AVX-512 and AMX CPU optimizations",
+      "action": "Research Intel CPU capabilities: instruction sets available, performance characteristics, kernel optimization patterns"
+    }
+  ],
+  "step2_research_findings": {
+    "upstream_ecosystem": {
+      "findings": [
+        "vLLM is a high-performance LLM inference engine with 15k+ GitHub stars",
+        "Active community with 200+ contributors, daily commits",
+        "Maintained by UC Berkeley and Anyscale, strong institutional backing",
+        "Primarily GPU-focused (CUDA, ROCm) with limited CPU support",
+        "Apache 2.0 license - compatible with Red Hat's open source strategy"
+      ],
+      "risks": [
+        "Upstream may not prioritize CPU optimizations if GPU is their focus",
+        "CPU performance gap vs GPU may limit adoption for large models",
+        "Integration complexity if vLLM architecture assumes GPU parallelism"
+      ],
+      "open_questions": [
+        "What is upstream's stance on CPU backend contributions?",
+        "Are there other CPU optimization efforts we should coordinate with?",
+        "What model sizes are practical for CPU inference?"
+      ]
+    },
+    "strategic_longevity": {
+      "findings": [
+        "Edge AI market growing at 20% CAGR through 2028",
+        "Increasing demand for AI inference without cloud dependency",
+        "GPU supply constraints driving interest in alternative accelerators",
+        "Major cloud providers (AWS, Azure, GCP) offering CPU-based inference options",
+        "Intel investing heavily in AI accelerators (Gaudi, Flex) and CPU optimizations"
+      ],
+      "risks": [
+        "ARM-based CPUs (Graviton, Ampere) may outperform x86 for inference",
+        "Specialized AI accelerators (Google TPU, AWS Inferentia) competing with both CPU and GPU",
+        "LLM model sizes continuing to grow may favor GPU parallelism"
+      ],
+      "open_questions": [
+        "What is Intel's roadmap for CPU AI acceleration?",
+        "How do ARM CPUs compare for LLM inference workloads?",
+        "Will RISC-V emerge as viable platform?"
+      ]
+    },
+    "product_fit": {
+      "findings": [
+        "RHIS currently supports: vLLM (GPU), TGI, Ollama",
+        "Container-first architecture aligns with our approach",
+        "OpenShift deployment model with operators",
+        "Focus on enterprise features: security, monitoring, multi-tenancy",
+        "Customer requests for non-GPU inference options"
+      ],
+      "risks": [
+        "CPU performance may not meet RHIS SLOs for all use cases",
+        "Additional testing matrix (CPU variants, AVX-512 vs AMX)",
+        "Support burden for hardware-specific optimizations"
+      ],
+      "open_questions": [
+        "What are RHIS performance SLOs for inference latency?",
+        "How does RHIS handle hardware capability detection?",
+        "What is the container base image strategy?"
+      ]
+    },
+    "safety_security": {
+      "findings": [
+        "vLLM has no recent critical CVEs",
+        "Active security response team",
+        "Dependencies: PyTorch (requires monitoring), Python ecosystem",
+        "CPU-only deployment reduces GPU driver security surface",
+        "UBI9 base images provide security scanning and patching"
+      ],
+      "risks": [
+        "PyTorch vulnerabilities could impact CPU backend",
+        "Performance optimizations (AVX-512) may introduce security tradeoffs",
+        "Model loading from untrusted sources requires sandboxing"
+      ],
+      "open_questions": [
+        "What security scanning is required for RHIS integration?",
+        "Are there specific compliance requirements (FedRAMP, etc.)?",
+        "How are models validated before loading?"
+      ]
+    },
+    "technical_constraints": {
+      "findings": [
+        "Modern Intel CPUs support AVX-512 and AMX instructions",
+        "AMX (Advanced Matrix Extensions) designed for AI workloads",
+        "Typical server CPU: 32-128 cores, 256GB+ RAM",
+        "Memory bandwidth is critical bottleneck for LLM inference",
+        "NUMA awareness important for multi-socket systems"
+      ],
+      "risks": [
+        "Not all CPUs have AMX support (requires Sapphire Rapids or newer)",
+        "Memory bandwidth limits throughput vs GPU",
+        "CPU inference 10-50x slower than GPU for large models",
+        "Power efficiency concerns for sustained inference workloads"
+      ],
+      "open_questions": [
+        "What CPU generations should we target?",
+        "How to handle graceful fallback if AMX unavailable?",
+        "What are acceptable performance tradeoffs vs GPU?"
+      ]
+    }
+  },
+  "step3_followup_qa": [
+    {
+      "question": "What specific CPU generations and instruction sets should we target for the initial implementation?",
+      "answer": "Target Intel 4th Gen Xeon (Sapphire Rapids) and newer for AMX support, with AVX-512 fallback for older CPUs. This covers the majority of modern server deployments while providing graceful degradation."
+    },
+    {
+      "question": "What model sizes and use cases are most practical for CPU-based inference given the performance constraints?",
+      "answer": "Focus on small to medium models (up to 13B parameters) for: code completion, chatbots, classification, edge deployments. Not targeting 70B+ models which require GPU parallelism."
+    },
+    {
+      "question": "How will we handle the container image size given the large PyTorch dependencies?",
+      "answer": "Use multi-stage builds with UBI9 base. Install only CPU-specific PyTorch (no CUDA). Implement lazy loading for models. Follow triton-dev-containers pattern of runtime dependency installation for optional components."
+    },
+    {
+      "question": "What is the upstream contribution strategy for CPU optimizations?",
+      "answer": "Develop optimizations in a fork initially. Once validated, contribute CPU backend as pull request to vLLM upstream. Maintain fork only if upstream doesn't accept (unlikely given community interest in CPU support)."
+    },
+    {
+      "question": "How do we measure success for this prototype before transfer to RHIS team?",
+      "answer": "Success criteria: (1) Functional CPU inference for Llama-7B model, (2) Performance within 20x of GPU (acceptable for edge use cases), (3) Container image < 5GB, (4) Integration with RHIS APIs validated, (5) Documentation and examples complete, (6) Upstream contribution path identified."
+    }
+  ],
+  "step4_blueprint": {
+    "upstream_ecosystem": {
+      "summary": "vLLM is a well-maintained, Apache 2.0 licensed project with strong community support. CPU backend contributions are feasible and aligned with community interest in deployment flexibility.",
+      "key_findings": [
+        "15k+ GitHub stars, active development",
+        "Strong institutional backing (UC Berkeley, Anyscale)",
+        "Primarily GPU-focused but open to CPU contributions",
+        "Apache 2.0 license compatible with Red Hat"
+      ],
+      "risks_mitigations": [
+        "Risk: Upstream may deprioritize CPU | Mitigation: Maintain fork if needed, contribute incrementally",
+        "Risk: Architecture assumes GPU parallelism | Mitigation: CPU backend as plugin/adapter pattern"
+      ],
+      "recommendations": [
+        "Engage with upstream maintainers early about CPU backend",
+        "Start with minimal viable CPU support, iterate based on feedback",
+        "Contribute documentation and examples to upstream"
+      ]
+    },
+    "strategic_longevity": {
+      "summary": "Strong market demand for CPU-based inference driven by edge AI growth, GPU constraints, and cost optimization. Technology aligns with 3-5 year industry trends.",
+      "key_findings": [
+        "Edge AI market growing 20% CAGR",
+        "Customer demand for GPU alternatives",
+        "Cloud providers offering CPU inference",
+        "Intel investing in CPU AI acceleration"
+      ],
+      "risks_mitigations": [
+        "Risk: ARM CPUs may outperform x86 | Mitigation: Architecture supports multiple CPU backends",
+        "Risk: Specialized accelerators competing | Mitigation: Position as complementary, not replacement"
+      ],
+      "recommendations": [
+        "Design for CPU portability (x86, ARM)",
+        "Focus on edge/development use cases where CPU makes sense",
+        "Partner with Intel on optimization and benchmarking"
+      ]
+    },
+    "product_fit": {
+      "summary": "Excellent fit with RHIS architecture and customer needs. CPU backend fills gap in current product portfolio.",
+      "key_findings": [
+        "RHIS container-first architecture aligns",
+        "Customer requests for non-GPU options validated",
+        "Integration points well-defined",
+        "Catcher team supportive and engaged"
+      ],
+      "risks_mitigations": [
+        "Risk: CPU performance below SLOs | Mitigation: Clear use case definition, performance documentation",
+        "Risk: Support burden | Mitigation: Automated testing, hardware detection"
+      ],
+      "recommendations": [
+        "Implement RHIS API compatibility from start",
+        "Provide performance benchmarking tools",
+        "Document supported CPU generations clearly"
+      ]
+    },
+    "safety_security": {
+      "summary": "Security posture is strong. UBI9 base images and reduced GPU driver surface improve security compared to GPU deployments.",
+      "key_findings": [
+        "No critical CVEs in vLLM",
+        "UBI9 provides security scanning",
+        "CPU-only reduces attack surface",
+        "Active upstream security response"
+      ],
+      "risks_mitigations": [
+        "Risk: PyTorch vulnerabilities | Mitigation: Regular dependency updates, security scanning",
+        "Risk: Model loading vulnerabilities | Mitigation: Implement model validation, sandboxing"
+      ],
+      "recommendations": [
+        "Include security scanning in CI/CD pipeline",
+        "Document model validation procedures",
+        "Follow RHIS security review process"
+      ]
+    },
+    "technical_constraints": {
+      "summary": "CPU inference is technically feasible with acceptable performance for targeted use cases. AMX and AVX-512 provide necessary acceleration.",
+      "key_findings": [
+        "Intel AMX designed for AI workloads",
+        "Modern CPUs have sufficient compute for small/medium models",
+        "Memory bandwidth is key bottleneck",
+        "NUMA awareness critical for performance"
+      ],
+      "risks_mitigations": [
+        "Risk: Performance 10-50x slower than GPU | Mitigation: Set clear expectations, target appropriate use cases",
+        "Risk: Not all CPUs support AMX | Mitigation: Graceful fallback to AVX-512"
+      ],
+      "recommendations": [
+        "Target Intel 4th Gen Xeon+ for AMX",
+        "Implement AVX-512 fallback",
+        "Optimize for memory bandwidth",
+        "Provide performance tuning guide"
+      ]
+    }
+  },
+  "step5_hil_approved": false,
+  "step6_code_artifacts": [],
+  "step6_infra_artifacts": [],
+  "step6_comms_artifacts": {},
+  "step7_validation": [],
+  "step8_final_config": {}
+}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Hermes — Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h2>Project Dashboard</h2>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Project</th>
+            <th>Strategic Priority</th>
+            <th>Lead</th>
+            <th>Catcher Org</th>
+            <th>Product</th>
+            <th>Catcher Eng Mgr</th>
+            <th>Catcher Prod Mgr</th>
+            <th>Slack</th>
+            <th>IdeaBot</th>
+            <th>ProtoBot</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in projects %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td><strong>{{ p.name }}</strong></td>
+            <td>{{ p.strategic_priority }}</td>
+            <td>{{ p.lead }}</td>
+            <td>{{ p.catcher_org }}</td>
+            <td>{{ p.product }}</td>
+            <td>{{ p.catcher_em }}</td>
+            <td>{{ p.catcher_pm }}</td>
+            <td>{{ p.slack }}</td>
+            <td>
+                {% if p.ideabot_status == 'Approved' %}
+                    <span class="badge badge-approved">{{ p.ideabot_status }}</span>
+                {% elif p.ideabot_status == 'In Progress' %}
+                    <span class="badge badge-in-progress">{{ p.ideabot_status }}</span>
+                {% elif p.ideabot_status == 'Denied' %}
+                    <span class="badge badge-denied">{{ p.ideabot_status }}</span>
+                {% else %}
+                    <span class="badge badge-not-started">{{ p.ideabot_status }}</span>
+                {% endif %}
+                <br>
+                <a href="/ideabot/{{ p.id }}" class="action-link">View</a>
+            </td>
+            <td>
+                {% if p.protobot_status == 'Complete' %}
+                    <span class="badge badge-complete">{{ p.protobot_status }}</span>
+                {% elif p.protobot_status == 'Blueprint' %}
+                    <span class="badge badge-blueprint">{{ p.protobot_status }}</span>
+                {% elif p.protobot_status == 'Not Started' %}
+                    <span class="badge badge-not-started">{{ p.protobot_status }}</span>
+                {% elif p.protobot_status == 'N/A' %}
+                    <span class="badge badge-na">{{ p.protobot_status }}</span>
+                {% else %}
+                    <span class="badge badge-in-progress">{{ p.protobot_status }}</span>
+                {% endif %}
+                <br>
+                {% if p.ideabot_status == 'Approved' %}
+                    <a href="/protobot/{{ p.id }}" class="action-link">View</a>
+                {% else %}
+                    <a class="action-link disabled">—</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

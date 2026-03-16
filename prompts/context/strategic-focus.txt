@@ -1,0 +1,52 @@
+Red Hat Strategic Priorities (2026)
+
+1. AI Inference Acceleration
+   - Large Language Model (LLM) inference optimization
+   - GPU and accelerator optionality (CPU, ARM, RISC-V)
+   - Edge AI deployment scenarios
+   - Model serving infrastructure
+   - Inference performance and cost optimization
+
+2. Edge Computing & Distributed Systems
+   - Edge-to-cloud orchestration
+   - 5G and telco edge deployments
+   - IoT device management
+   - Edge AI workloads
+   - Disconnected and intermittent connectivity scenarios
+
+3. Cloud Native Observability
+   - Service mesh observability (Istio, Envoy)
+   - Distributed tracing at scale
+   - Metrics aggregation and analysis
+   - Log correlation and search
+   - Anomaly detection and alerting
+
+4. Secure Software Supply Chain
+   - Software Bill of Materials (SBOM) generation
+   - Container image scanning and policy enforcement
+   - Dependency vulnerability tracking
+   - Provenance and attestation
+   - Zero-trust security models
+
+5. Developer Experience & Productivity
+   - AI-powered code assistance
+   - Development environment standardization
+   - CI/CD pipeline optimization
+   - Inner loop development speed
+   - Onboarding and ramp-up time reduction
+
+Product Focus Areas:
+- OpenShift (Kubernetes platform)
+- Red Hat Enterprise Linux (RHEL)
+- Red Hat AI (inference, training, model serving)
+- Ansible Automation Platform
+- Service Mesh (Istio-based)
+- Quay (container registry)
+
+Market Trends to Watch:
+- Generative AI adoption in enterprise
+- Hybrid cloud adoption acceleration
+- ARM and RISC-V in data center
+- eBPF for observability and security
+- WebAssembly for edge computing
+- Confidential computing and TEEs

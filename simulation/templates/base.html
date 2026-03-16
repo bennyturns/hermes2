@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hermes{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&family=Red+Hat+Text:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="topbar">
+        <h1>HERMES</h1>
+        <span class="subtitle">Emerging Technologies Playbook</span>
+        <div class="topbar-right">
+            <a href="/" class="{% if active_nav == 'dashboard' %}active{% endif %}">Dashboard</a>
+            <a href="#" onclick="if(confirm('Reset simulation?')){fetch('/restart',{method:'POST'}).then(()=>setTimeout(()=>location.href='/',1500))};return false;" title="Reset simulation" style="opacity:0.3; font-size:16px;">&#8635;</a>
+        </div>
+    </div>
+    {% block breadcrumb %}{% endblock %}
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

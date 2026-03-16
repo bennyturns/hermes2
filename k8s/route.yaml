@@ -1,0 +1,22 @@
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: hermes
+  namespace: hermes
+  labels:
+    app: hermes
+  annotations:
+    haproxy.router.openshift.io/timeout: "300s"
+spec:
+  host: hermes.apps.your-cluster.example.com  # Update with actual OpenShift domain
+  to:
+    kind: Service
+    name: hermes
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
