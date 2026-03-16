@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hermes{% endblock %} - OCTO Emerging Technologies</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+    <link rel="stylesheet" href="/static/style.css">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -25,8 +25,8 @@
     {% endblock %}
 
     <!-- Load notification system before page scripts -->
-    <script src="{{ url_for('static', path='/notifications.js') }}"></script>
-    <script src="{{ url_for('static', path='/progress.js') }}"></script>
+    <script src="/static/notifications.js"></script>
+    <script src="/static/progress.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
