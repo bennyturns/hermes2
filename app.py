@@ -128,12 +128,12 @@ async def create_project(request: Request):
             'id': project_id,
             'name': project_name,
             'lead': pitcher_name,
-            'catcher_product': "",  # Will be filled in by IdeaBot questionnaire
-            'catcher_org': "",
-            'catcher_pm': "",
-            'catcher_em': "",
-            'catcher_tl': "",
-            'strategic_priority': "",
+            'catcher_product': "TBD",  # Will be filled in by IdeaBot questionnaire
+            'catcher_org': "TBD",
+            'catcher_pm': "TBD",
+            'catcher_em': "TBD",
+            'catcher_tl': "TBD",
+            'strategic_priority': "TBD",
             'slack_channel': "",
             'ideabot_status': "in_progress",  # Always start in_progress to collect info
             'protobot_status': "n/a"
@@ -206,12 +206,12 @@ async def create_quick_prototype(request: Request):
             'id': project_id,
             'name': project_name,
             'lead': 'QuickProto',
-            'catcher_product': "",
-            'catcher_org': "",
-            'catcher_pm': "",
-            'catcher_em': "",
-            'catcher_tl': "",
-            'strategic_priority': "",
+            'catcher_product': "TBD",
+            'catcher_org': "TBD",
+            'catcher_pm': "TBD",
+            'catcher_em': "TBD",
+            'catcher_tl': "TBD",
+            'strategic_priority': "TBD",
             'slack_channel': "",
             'ideabot_status': "skipped",  # Skip IdeaBot
             'protobot_status': "skipped"  # Skip ProtoBot, use QuickProto
@@ -1056,6 +1056,27 @@ async def ideabot_save(request: Request):
         else:
             await update_ideabot_session(session['id'], {'answers': answers})
             logger.info(f"Updated IdeaBot session for {project_id} with {len(answers)} answers")
+
+        # Update project fields from answers
+        project_updates = {}
+        if answers.get('q5_strategic_priority'):
+            project_updates['strategic_priority'] = answers['q5_strategic_priority']
+        if answers.get('q6_catcher_org'):
+            project_updates['catcher_org'] = answers['q6_catcher_org']
+        if answers.get('q7_catcher_product'):
+            project_updates['catcher_product'] = answers['q7_catcher_product']
+        if answers.get('q8_catcher_pm'):
+            project_updates['catcher_pm'] = answers['q8_catcher_pm']
+        if answers.get('q9_catcher_em'):
+            project_updates['catcher_em'] = answers['q9_catcher_em']
+        if answers.get('q10_catcher_tl'):
+            project_updates['catcher_tl'] = answers['q10_catcher_tl']
+        if answers.get('q11_slack_channel'):
+            project_updates['slack_channel'] = answers['q11_slack_channel']
+
+        if project_updates:
+            await update_project(project_id, project_updates)
+            logger.info(f"Updated project {project_id} fields: {list(project_updates.keys())}")
 
         return JSONResponse({
             "status": "success",
