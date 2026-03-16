@@ -128,12 +128,12 @@ async def create_project(request: Request):
             'id': project_id,
             'name': project_name,
             'lead': pitcher_name,
-            'catcher_product': "TBD",  # Will be filled in by IdeaBot questionnaire
-            'catcher_org': "TBD",
-            'catcher_pm': "TBD",
-            'catcher_em': "TBD",
-            'catcher_tl': "TBD",
-            'strategic_priority': "TBD",
+            'catcher_product': "",  # Will be filled in by IdeaBot questionnaire
+            'catcher_org': "",
+            'catcher_pm': "",
+            'catcher_em': "",
+            'catcher_tl': "",
+            'strategic_priority': "",
             'slack_channel': "",
             'ideabot_status': "in_progress",  # Always start in_progress to collect info
             'protobot_status': "n/a"
@@ -206,12 +206,12 @@ async def create_quick_prototype(request: Request):
             'id': project_id,
             'name': project_name,
             'lead': 'QuickProto',
-            'catcher_product': "TBD",
-            'catcher_org': "TBD",
-            'catcher_pm': "TBD",
-            'catcher_em': "TBD",
-            'catcher_tl': "TBD",
-            'strategic_priority': "TBD",
+            'catcher_product': "",
+            'catcher_org': "",
+            'catcher_pm': "",
+            'catcher_em': "",
+            'catcher_tl': "",
+            'strategic_priority': "",
             'slack_channel': "",
             'ideabot_status': "skipped",  # Skip IdeaBot
             'protobot_status': "skipped"  # Skip ProtoBot, use QuickProto
