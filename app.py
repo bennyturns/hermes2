@@ -1766,6 +1766,94 @@ async def protobot_save_answers(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/protobot/save-edit")
+async def protobot_save_edit(request: Request):
+    """
+    Save edited content (research findings, blueprint, or artifacts).
+
+    Expects JSON body:
+    {
+        "project_id": "vllm-cpu",
+        "context": "research_findings" | "blueprint" | "artifact",
+        "field": "step2_research_findings" | "step4_blueprint" | "step6_code_artifacts",
+        "data": <edited_content>,
+        "filename": "optional - for artifacts",
+        "index": "optional - for artifacts"
+    }
+    """
+    try:
+        data = await request.json()
+        project_id = data.get('project_id')
+        context = data.get('context')
+        field = data.get('field')
+        edited_data = data.get('data')
+
+        if not project_id or not context or not field:
+            raise HTTPException(status_code=400, detail="project_id, context, and field are required")
+
+        # Handle different contexts
+        if context == 'research_findings' or context == 'blueprint':
+            # Parse JSON string back to dict
+            import json
+            try:
+                parsed_data = json.loads(edited_data)
+            except json.JSONDecodeError:
+                raise HTTPException(status_code=400, detail="Invalid JSON format")
+
+            # Update ProtoBot session
+            await update_protobot_session(project_id, {
+                field: parsed_data
+            })
+
+        elif context == 'artifact':
+            # Get current session
+            session = await get_protobot_session(project_id)
+            if not session:
+                raise HTTPException(status_code=404, detail="ProtoBot session not found")
+
+            # Handle artifact updates
+            filename = data.get('filename')
+            index = data.get('index')
+
+            if field in ['step6_code_artifacts', 'step6_infra_artifacts']:
+                # Update array-based artifacts
+                artifacts = session[field] or []
+                if isinstance(index, int) and 0 <= index < len(artifacts):
+                    artifacts[index]['content'] = edited_data
+                    await update_protobot_session(project_id, {
+                        field: artifacts
+                    })
+                else:
+                    raise HTTPException(status_code=400, detail="Invalid artifact index")
+
+            elif field == 'step6_comms_artifacts':
+                # Update dict-based artifacts (email, calendar, blog)
+                comms = session[field] or {}
+                if index in ['email', 'calendar', 'blog']:
+                    comms[index] = edited_data
+                    await update_protobot_session(project_id, {
+                        field: comms
+                    })
+                else:
+                    raise HTTPException(status_code=400, detail="Invalid communication type")
+
+        else:
+            raise HTTPException(status_code=400, detail="Invalid context")
+
+        logger.info(f"Saved edit for {project_id}: {context}/{field}")
+
+        return JSONResponse({
+            "status": "success",
+            "message": "Edit saved successfully"
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving edit: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/protobot/execute-research")
 async def protobot_execute_research(request: Request):
     """

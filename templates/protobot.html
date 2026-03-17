@@ -131,6 +131,12 @@
                         {% if protobot_data.step2_research_findings %}
                         <p class="mb-lg">Research complete! ProtoBot has analyzed findings across 5 key dimensions.</p>
 
+                        <div style="margin-bottom: 16px;">
+                            <button class="edit-button" onclick="editResearchFindings()">
+                                ✏️ Edit Research Findings
+                            </button>
+                        </div>
+
                         {% for category, data in protobot_data.step2_research_findings.items() %}
                         <div class="findings-category">
                             <h3 style="color: var(--rh-black); margin-bottom: 12px;">{{ category.replace('_', ' ')|title }}</h3>
@@ -227,7 +233,10 @@
                         {% if protobot_data.step4_blueprint %}
                         <p class="mb-lg">Complete technical blueprint synthesized from research and Q&A. Review the blueprint and proceed to HIL approval when ready.</p>
 
-                        <div style="margin-bottom: 24px;">
+                        <div style="margin-bottom: 24px; display: flex; gap: 12px;">
+                            <button class="edit-button" onclick="editBlueprint()">
+                                ✏️ Edit Blueprint
+                            </button>
                             <a href="/api/protobot/export-blueprint/{{ project.id }}" class="button button-secondary" download>
                                 📄 Export as Markdown
                             </a>
@@ -345,10 +354,13 @@
                                 <p><strong>Generated Files:</strong></p>
                                 <div class="artifact-list">
                                     {% for artifact in protobot_data.step6_code_artifacts %}
-                                    <div class="artifact-item" onclick="viewArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`)">
-                                        <span class="artifact-icon">📄</span>
-                                        <span class="artifact-name">{{ artifact.filename }}</span>
-                                        <span class="artifact-type badge">{{ artifact.type }}</span>
+                                    <div class="artifact-item" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                        <div onclick="viewArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`)" style="flex: 1;">
+                                            <span class="artifact-icon">📄</span>
+                                            <span class="artifact-name">{{ artifact.filename }}</span>
+                                            <span class="artifact-type badge">{{ artifact.type }}</span>
+                                        </div>
+                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_code_artifacts', {{ loop.index0 }})">✏️ Edit</button>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -375,10 +387,13 @@
                                 <p><strong>Generated Files:</strong></p>
                                 <div class="artifact-list">
                                     {% for artifact in protobot_data.step6_infra_artifacts %}
-                                    <div class="artifact-item" onclick="viewArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`)">
-                                        <span class="artifact-icon">{% if artifact.type == 'container' %}🐳{% elif artifact.type == 'deployment' %}☸️{% elif artifact.type == 'security' %}🔒{% else %}📄{% endif %}</span>
-                                        <span class="artifact-name">{{ artifact.filename }}</span>
-                                        <span class="artifact-type badge">{{ artifact.type }}</span>
+                                    <div class="artifact-item" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                        <div onclick="viewArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`)" style="flex: 1;">
+                                            <span class="artifact-icon">{% if artifact.type == 'container' %}🐳{% elif artifact.type == 'deployment' %}☸️{% elif artifact.type == 'security' %}🔒{% else %}📄{% endif %}</span>
+                                            <span class="artifact-name">{{ artifact.filename }}</span>
+                                            <span class="artifact-type badge">{{ artifact.type }}</span>
+                                        </div>
+                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_infra_artifacts', {{ loop.index0 }})">✏️ Edit</button>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -405,24 +420,33 @@
                                 <p><strong>Generated Communications:</strong></p>
                                 <div class="artifact-list">
                                     {% if protobot_data.step6_comms_artifacts.email %}
-                                    <div class="artifact-item" onclick="viewArtifact('transfer-email.eml', `{{ protobot_data.step6_comms_artifacts.email|replace('`', '\\`')|replace('$', '\\$') }}`)">
-                                        <span class="artifact-icon">📧</span>
-                                        <span class="artifact-name">transfer-email.eml</span>
-                                        <span class="artifact-type badge">email</span>
+                                    <div class="artifact-item" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                        <div onclick="viewArtifact('transfer-email.eml', `{{ protobot_data.step6_comms_artifacts.email|replace('`', '\\`')|replace('$', '\\$') }}`)" style="flex: 1;">
+                                            <span class="artifact-icon">📧</span>
+                                            <span class="artifact-name">transfer-email.eml</span>
+                                            <span class="artifact-type badge">email</span>
+                                        </div>
+                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('transfer-email.eml', `{{ protobot_data.step6_comms_artifacts.email|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'email')">✏️ Edit</button>
                                     </div>
                                     {% endif %}
                                     {% if protobot_data.step6_comms_artifacts.calendar %}
-                                    <div class="artifact-item" onclick="viewArtifact('transfer-meeting.ics', `{{ protobot_data.step6_comms_artifacts.calendar|replace('`', '\\`')|replace('$', '\\$') }}`)">
-                                        <span class="artifact-icon">📅</span>
-                                        <span class="artifact-name">transfer-meeting.ics</span>
-                                        <span class="artifact-type badge">calendar</span>
+                                    <div class="artifact-item" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                        <div onclick="viewArtifact('transfer-meeting.ics', `{{ protobot_data.step6_comms_artifacts.calendar|replace('`', '\\`')|replace('$', '\\$') }}`)" style="flex: 1;">
+                                            <span class="artifact-icon">📅</span>
+                                            <span class="artifact-name">transfer-meeting.ics</span>
+                                            <span class="artifact-type badge">calendar</span>
+                                        </div>
+                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('transfer-meeting.ics', `{{ protobot_data.step6_comms_artifacts.calendar|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'calendar')">✏️ Edit</button>
                                     </div>
                                     {% endif %}
                                     {% if protobot_data.step6_comms_artifacts.blog %}
-                                    <div class="artifact-item" onclick="viewArtifact('blog-post.md', `{{ protobot_data.step6_comms_artifacts.blog|replace('`', '\\`')|replace('$', '\\$') }}`)">
-                                        <span class="artifact-icon">📝</span>
-                                        <span class="artifact-name">blog-post.md</span>
-                                        <span class="artifact-type badge">blog</span>
+                                    <div class="artifact-item" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                                        <div onclick="viewArtifact('blog-post.md', `{{ protobot_data.step6_comms_artifacts.blog|replace('`', '\\`')|replace('$', '\\$') }}`)" style="flex: 1;">
+                                            <span class="artifact-icon">📝</span>
+                                            <span class="artifact-name">blog-post.md</span>
+                                            <span class="artifact-type badge">blog</span>
+                                        </div>
+                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('blog-post.md', `{{ protobot_data.step6_comms_artifacts.blog|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'blog')">✏️ Edit</button>
                                     </div>
                                     {% endif %}
                                 </div>
@@ -679,6 +703,24 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+        <div class="modal-header">
+            <h2 id="edit-modal-title">Edit Content</h2>
+            <button class="modal-close" onclick="closeEditModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <textarea id="edit-modal-content" rows="20" style="width: 100%; font-family: var(--font-mono); font-size: 0.9rem; padding: 12px; border: 1px solid var(--rh-gray-light); border-radius: var(--border-radius-sm);"></textarea>
+
+            <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="button button-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="button button-primary" onclick="saveEditedContent()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -1234,6 +1276,88 @@
 .mt-md { margin-top: 16px; }
 .mt-lg { margin-top: 24px; }
 .mb-lg { margin-bottom: 24px; }
+
+/* Edit Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-content {
+    background-color: var(--rh-white);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 24px;
+    border-bottom: 1px solid var(--rh-gray-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--rh-black);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: var(--rh-gray-mid);
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--rh-black);
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+/* Edit button styles */
+.edit-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    background-color: var(--rh-blue);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.edit-button:hover {
+    background-color: #003366;
+}
+
+.section-header-with-edit {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
 </style>
 
 <script>
@@ -2570,6 +2694,121 @@ function processChatCommand(message) {
         }
     }
 }
+
+// ============================================================================
+// Edit Modal Functions
+// ============================================================================
+
+let currentEditContext = null;
+
+function openEditModal(title, content, context) {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = document.getElementById('edit-modal-title');
+    const modalContent = document.getElementById('edit-modal-content');
+
+    modalTitle.textContent = title;
+    modalContent.value = content;
+    currentEditContext = context;
+
+    modal.style.display = 'flex';
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('edit-modal');
+    modal.style.display = 'none';
+    currentEditContext = null;
+}
+
+async function saveEditedContent() {
+    const modalContent = document.getElementById('edit-modal-content');
+    const editedContent = modalContent.value;
+
+    if (!currentEditContext) {
+        notify.error('No edit context found');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/protobot/save-edit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                context: currentEditContext.type,
+                data: editedContent,
+                field: currentEditContext.field
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save changes');
+        }
+
+        notify.success('Changes saved successfully!');
+        closeEditModal();
+
+        // Reload page to show changes
+        setTimeout(() => {
+            window.location.reload();
+        }, 500);
+
+    } catch (error) {
+        console.error('Save error:', error);
+        notify.error('Failed to save changes: ' + error.message);
+    }
+}
+
+// Edit Research Findings
+function editResearchFindings() {
+    const findings = {{ protobot_data.step2_research_findings|tojson if protobot_data.step2_research_findings else '{}' }};
+    const content = JSON.stringify(findings, null, 2);
+
+    openEditModal(
+        'Edit Research Findings',
+        content,
+        { type: 'research_findings', field: 'step2_research_findings' }
+    );
+}
+
+// Edit Blueprint
+function editBlueprint() {
+    const blueprint = {{ protobot_data.step4_blueprint|tojson if protobot_data.step4_blueprint else '{}' }};
+    const content = JSON.stringify(blueprint, null, 2);
+
+    openEditModal(
+        'Edit Blueprint',
+        content,
+        { type: 'blueprint', field: 'step4_blueprint' }
+    );
+}
+
+// Edit Artifact (for code/infra/comms)
+function editArtifact(filename, content, artifactType, index) {
+    openEditModal(
+        `Edit ${filename}`,
+        content,
+        {
+            type: 'artifact',
+            field: artifactType,
+            filename: filename,
+            index: index
+        }
+    );
+}
+
+// Close modal on background click
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('edit-modal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeEditModal();
+            }
+        });
+    }
+});
 </script>
 
 {% endblock %}
