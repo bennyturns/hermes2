@@ -28,18 +28,16 @@
             </div>
             {% endif %}
 
-            <p class="mb-lg">Answer the following questions to help IdeaBot evaluate your project idea. Click "Next" to go through questions one by one, or "Show All" to see everything at once.</p>
+            <p class="mb-lg">IdeaBot will help evaluate your project idea through interactive Q&A. Provide your initial information below, then defend your idea through conversation.</p>
 
-            <!-- Progress Indicator -->
-            <div id="progress-indicator" style="padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-md); margin-bottom: 24px;">
+            <!-- Mode Indicator -->
+            <div id="mode-indicator" style="padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-md); margin-bottom: 24px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <strong>Progress:</strong> <span id="progress-text">0 of 11 questions answered</span>
+                        <strong>Status:</strong> <span id="mode-text">Initial submission</span>
                     </div>
-                    <div style="flex-grow: 1; max-width: 400px; margin: 0 24px;">
-                        <div style="background: var(--rh-gray-light); height: 8px; border-radius: 4px; overflow: hidden;">
-                            <div id="progress-bar" style="background: var(--rh-red); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
-                        </div>
+                    <div id="evaluation-mode-badge" style="display: none; padding: 4px 12px; background: var(--rh-blue); color: white; border-radius: 12px; font-size: 0.85rem; font-weight: 600;">
+                        🔍 Interactive Evaluation Mode
                     </div>
                 </div>
             </div>
@@ -72,92 +70,128 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 12px; margin-bottom: 24px;">
-                <button class="button button-primary" onclick="nextQuestion()">Next</button>
-                <button class="button button-secondary" onclick="showAll()">Show All</button>
-                <button class="button button-secondary" onclick="saveAnswers()" style="margin-left: auto;">
-                    Save Progress
-                </button>
-            </div>
+            <!-- Two Column Layout -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
 
-            <div id="status-message" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
-
-            <!-- Questions -->
-            <div id="questions-container">
-                <!-- Question 1 -->
-                <div class="question-block" data-question="1" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">1. What is your name?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Enter your name..." data-answer-key="q1_name">{{ ideabot_data.answers.q1_name }}</div>
-                </div>
-
-                <!-- Question 2 -->
-                <div class="question-block" data-question="2" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">2. What is the idea?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Describe your project idea..." data-answer-key="q2_idea">{% if ideabot_data['answers'].get('q2_idea') %}{{ ideabot_data['answers']['q2_idea'] }}{% endif %}</div>
-                </div>
-
-                <!-- Question 3 -->
-                <div class="question-block" data-question="3" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">3. What is the project name?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Enter project name..." data-answer-key="q3_project_name">{% if ideabot_data['answers'].get('q3_project_name') %}{{ ideabot_data['answers']['q3_project_name'] }}{% endif %}</div>
-                </div>
-
-                <!-- Question 4 -->
-                <div class="question-block" data-question="4" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">4. Why is this relevant to Red Hat's market?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Explain market relevance..." data-answer-key="q4_market_relevance">{% if ideabot_data['answers'].get('q4_market_relevance') %}{{ ideabot_data['answers']['q4_market_relevance'] }}{% endif %}</div>
-                </div>
-
-                <!-- Question 5 -->
-                <div class="question-block" data-question="5" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">5. Does this contribute to a strategic priority?</h3>
-                    <p style="color: var(--rh-gray-mid); margin-bottom: 12px; font-size: 0.9rem;">
-                        Red Hat 2026 Strategic Priorities:<br>
-                        <strong>1.</strong> AI Inference Acceleration &nbsp;|&nbsp;
-                        <strong>2.</strong> Edge Computing & Distributed Systems &nbsp;|&nbsp;
-                        <strong>3.</strong> Cloud Native Observability &nbsp;|&nbsp;
-                        <strong>4.</strong> Secure Software Supply Chain &nbsp;|&nbsp;
-                        <strong>5.</strong> Developer Experience & Productivity
+                <!-- Left Panel: Core Questions -->
+                <div>
+                    <h3 style="margin-bottom: 16px; color: var(--rh-red);">Core Information</h3>
+                    <p style="color: var(--rh-gray-mid); margin-bottom: 16px; font-size: 0.9rem;">
+                        Provide these details to begin the evaluation conversation.
                     </p>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Which strategic priority does this align with?" data-answer-key="q5_strategic_priority">{% if ideabot_data['answers'].get('q5_strategic_priority') %}{{ ideabot_data['answers']['q5_strategic_priority'] }}{% endif %}</div>
+
+                    <div id="status-message" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
+
+                    <!-- Simplified Questions -->
+                    <div id="core-questions" style="display: block;">
+                        <!-- Name -->
+                        <div class="question-block">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--rh-black);">Your Name</label>
+                            <div class="answer-field" contenteditable="true" data-placeholder="Enter your name..." data-answer-key="q1_name" style="min-height: 50px;">{{ ideabot_data.answers.q1_name }}</div>
+                        </div>
+
+                        <!-- Project Name -->
+                        <div class="question-block">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--rh-black);">Project Name</label>
+                            <div class="answer-field" contenteditable="true" data-placeholder="Enter project name..." data-answer-key="q3_project_name" style="min-height: 50px;">{% if ideabot_data['answers'].get('q3_project_name') %}{{ ideabot_data['answers']['q3_project_name'] }}{% endif %}</div>
+                        </div>
+
+                        <!-- Idea Description -->
+                        <div class="question-block">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--rh-black);">What is the idea?</label>
+                            <div class="answer-field" contenteditable="true" data-placeholder="Describe your project idea in 2-3 sentences..." data-answer-key="q2_idea" style="min-height: 100px;">{% if ideabot_data['answers'].get('q2_idea') %}{{ ideabot_data['answers']['q2_idea'] }}{% endif %}</div>
+                        </div>
+
+                        <!-- Market Relevance -->
+                        <div class="question-block">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--rh-black);">Why is this relevant to Red Hat's market?</label>
+                            <div class="answer-field" contenteditable="true" data-placeholder="Explain market relevance..." data-answer-key="q4_market_relevance" style="min-height: 100px;">{% if ideabot_data['answers'].get('q4_market_relevance') %}{{ ideabot_data['answers']['q4_market_relevance'] }}{% endif %}</div>
+                        </div>
+
+                        <!-- Strategic Priority -->
+                        <div class="question-block">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--rh-black);">Strategic Priority Alignment</label>
+                            <p style="color: var(--rh-gray-mid); margin-bottom: 8px; font-size: 0.85rem;">
+                                <strong>Red Hat 2026 Priorities:</strong> AI Inference • Edge Computing • Cloud Native Observability • Secure Supply Chain • Developer Experience
+                            </p>
+                            <div class="answer-field" contenteditable="true" data-placeholder="Which strategic priority?" data-answer-key="q5_strategic_priority" style="min-height: 60px;">{% if ideabot_data['answers'].get('q5_strategic_priority') %}{{ ideabot_data['answers']['q5_strategic_priority'] }}{% endif %}</div>
+                        </div>
+
+                        <!-- Catcher Product -->
+                        <div class="question-block">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--rh-black);">Catcher Product</label>
+                            <div class="answer-field" contenteditable="true" data-placeholder="Which product will receive these capabilities?" data-answer-key="q6_catcher_product" style="min-height: 50px;">{% if ideabot_data['answers'].get('q6_catcher_product') %}{{ ideabot_data['answers']['q6_catcher_product'] }}{% endif %}</div>
+                        </div>
+
+                        <!-- Catcher Team -->
+                        <div class="question-block" style="border-bottom: none;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; color: var(--rh-black);">Catcher Team Contacts</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--rh-gray-mid);">Product Manager</label>
+                                    <div class="answer-field" contenteditable="true" data-placeholder="PM name" data-answer-key="q7_catcher_pm" style="min-height: 40px;">{% if ideabot_data['answers'].get('q7_catcher_pm') %}{{ ideabot_data['answers']['q7_catcher_pm'] }}{% endif %}</div>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--rh-gray-mid);">Engineering Manager</label>
+                                    <div class="answer-field" contenteditable="true" data-placeholder="EM name" data-answer-key="q8_catcher_em" style="min-height: 40px;">{% if ideabot_data['answers'].get('q8_catcher_em') %}{{ ideabot_data['answers']['q8_catcher_em'] }}{% endif %}</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 12px;">
+                                <label style="display: block; font-size: 0.85rem; margin-bottom: 4px; color: var(--rh-gray-mid);">Technical Lead</label>
+                                <div class="answer-field" contenteditable="true" data-placeholder="Technical lead name" data-answer-key="q9_catcher_tl" style="min-height: 40px;">{% if ideabot_data['answers'].get('q9_catcher_tl') %}{{ ideabot_data['answers']['q9_catcher_tl'] }}{% endif %}</div>
+                            </div>
+                        </div>
+
+                        <!-- Save and Start Buttons -->
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
+                            <button class="button button-secondary" onclick="saveAnswers()">Save Progress</button>
+                            <button class="button button-primary" onclick="startEvaluation()" id="start-eval-btn">
+                                Start Evaluation Discussion →
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Question 6 -->
-                <div class="question-block" data-question="6" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">6. Which product will receive these capabilities (catcher)?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Enter catcher product..." data-answer-key="q6_catcher_product">{% if ideabot_data['answers'].get('q6_catcher_product') %}{{ ideabot_data['answers']['q6_catcher_product'] }}{% endif %}</div>
+                <!-- Right Panel: Chat -->
+                <div>
+                    <div class="chat-panel">
+                        <div class="chat-header">
+                            <h3>IdeaBot Evaluation Chat</h3>
+                            <span class="chat-status-badge" id="chat-status-badge">Ready</span>
+                        </div>
+                        <div class="chat-messages" id="chat-messages">
+                            {% if chat_history and chat_history|length > 0 %}
+                                {% for message in chat_history %}
+                                <div class="chat-message {% if message.role == 'user' %}user-message{% else %}assistant-message{% endif %}">
+                                    <div class="message-role">{{ message.role|title }}</div>
+                                    <div class="message-content">{{ message.content }}</div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="chat-placeholder">
+                                    <p><strong>🤖 IdeaBot - Interactive Evaluation</strong></p>
+                                    <p>Fill out the core information on the left, then click "Start Evaluation Discussion" to begin.</p>
+                                    <p style="margin-top: 12px; font-size: 14px; color: var(--rh-gray-mid);">
+                                        IdeaBot will challenge your idea with "why" questions. Be prepared to defend your thinking and demonstrate strategic alignment.
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div id="chat-typing" class="chat-typing" style="display: none;">
+                            <span>IdeaBot is thinking</span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                        </div>
+                        <div class="chat-input">
+                            <textarea id="chat-input-field" placeholder="Respond to IdeaBot..." rows="3" disabled></textarea>
+                            <button class="button button-primary" id="chat-send-btn" onclick="sendChatMessage()" disabled>Send</button>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Question 7 -->
-                <div class="question-block" data-question="7" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">7. Who is the catching Product Manager?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Enter PM name..." data-answer-key="q7_catcher_pm">{% if ideabot_data['answers'].get('q7_catcher_pm') %}{{ ideabot_data['answers']['q7_catcher_pm'] }}{% endif %}</div>
-                </div>
-
-                <!-- Question 8 -->
-                <div class="question-block" data-question="8" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">8. Who is the catching Engineering Manager?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Enter EM name..." data-answer-key="q8_catcher_em">{% if ideabot_data['answers'].get('q8_catcher_em') %}{{ ideabot_data['answers']['q8_catcher_em'] }}{% endif %}</div>
-                </div>
-
-                <!-- Question 9 -->
-                <div class="question-block" data-question="9" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">9. Who is the catching technical lead?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Enter technical lead name..." data-answer-key="q9_catcher_tl">{% if ideabot_data['answers'].get('q9_catcher_tl') %}{{ ideabot_data['answers']['q9_catcher_tl'] }}{% endif %}</div>
-                </div>
-
-                <!-- Question 10 -->
-                <div class="question-block" data-question="10" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">10. Have you checked that catchers aren't already working on this?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Confirm existing work check..." data-answer-key="q10_existing_work">{% if ideabot_data['answers'].get('q10_existing_work') %}{{ ideabot_data['answers']['q10_existing_work'] }}{% endif %}</div>
-                </div>
-
-                <!-- Question 11 -->
-                <div class="question-block" data-question="11" style="display: none;">
-                    <h3 style="color: var(--rh-red); margin-bottom: 12px;">11. Have you discussed technical approach with catching TL?</h3>
-                    <div class="answer-field" contenteditable="true" data-placeholder="Describe technical approach discussion..." data-answer-key="q11_technical_approach">{% if ideabot_data['answers'].get('q11_technical_approach') %}{{ ideabot_data['answers']['q11_technical_approach'] }}{% endif %}</div>
-                </div>
             </div>
+            <!-- End Two Column Layout -->
 
             <!-- Evaluation Card (shown after all questions) -->
             {% if ideabot_data.get('evaluation') %}
@@ -185,8 +219,8 @@
 
 <style>
 .question-block {
-    margin-bottom: 32px;
-    padding-bottom: 32px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
     border-bottom: 1px solid var(--rh-gray-lighter);
 }
 
@@ -213,52 +247,187 @@
     color: var(--rh-gray-mid);
     font-style: italic;
 }
+
+/* Chat Panel Styles */
+.chat-panel {
+    background: var(--rh-white);
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-md);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 300px);
+    min-height: 600px;
+}
+
+.chat-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--rh-gray-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--rh-gray-lighter);
+}
+
+.chat-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--rh-red);
+}
+
+.chat-status-badge {
+    padding: 4px 12px;
+    background: var(--rh-gray-mid);
+    color: white;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.chat-status-badge.active {
+    background: var(--rh-green);
+}
+
+.chat-status-badge.evaluating {
+    background: var(--rh-blue);
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.chat-placeholder {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--rh-gray-mid);
+}
+
+.chat-placeholder strong {
+    color: var(--rh-black);
+    font-size: 1.1rem;
+}
+
+.chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 85%;
+}
+
+.chat-message.user-message {
+    align-self: flex-end;
+}
+
+.chat-message.assistant-message {
+    align-self: flex-start;
+}
+
+.message-role {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--rh-gray-mid);
+}
+
+.message-content {
+    padding: 12px;
+    border-radius: var(--border-radius-sm);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.user-message .message-content {
+    background: var(--rh-blue);
+    color: white;
+}
+
+.assistant-message .message-content {
+    background: var(--rh-gray-lighter);
+    color: var(--rh-black);
+}
+
+.chat-typing {
+    padding: 12px 16px;
+    color: var(--rh-gray-mid);
+    font-style: italic;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--rh-gray-mid);
+    border-radius: 50%;
+    animation: typing-bounce 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-8px); }
+}
+
+.chat-input {
+    padding: 16px;
+    border-top: 1px solid var(--rh-gray-light);
+    display: flex;
+    gap: 12px;
+}
+
+.chat-input textarea {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--rh-gray-light);
+    border-radius: var(--border-radius-sm);
+    resize: none;
+    font-family: inherit;
+}
+
+.chat-input textarea:focus {
+    outline: none;
+    border-color: var(--rh-red);
+}
+
+.chat-input textarea:disabled {
+    background: var(--rh-gray-lighter);
+    cursor: not-allowed;
+}
+
+.chat-input button {
+    align-self: flex-end;
+}
+
+.chat-input button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
 </style>
 
 <script>
-let currentQuestion = 0;
-const totalQuestions = 11;
 const projectId = '{{ project.id }}';
 const isPreApproved = {% if ideabot_data.get('answers', {}).get('pre_approved') %}true{% else %}false{% endif %};
+let conversationActive = false;
+let messageCount = 0;
 
-function showQuestion(num) {
-    const questions = document.querySelectorAll('.question-block');
-    questions.forEach((q, idx) => {
-        q.style.display = (idx + 1 === num) ? 'block' : 'none';
-    });
-    currentQuestion = num;
-}
-
-function nextQuestion() {
-    if (currentQuestion < totalQuestions) {
-        showQuestion(currentQuestion + 1);
-    }
-
-    // Show evaluation card after last question
-    if (currentQuestion === totalQuestions) {
-        const evalCard = document.getElementById('evaluation-card');
-        if (evalCard) {
-            evalCard.style.display = 'block';
-        }
-    }
-}
-
-function showAll() {
-    const questions = document.querySelectorAll('.question-block');
-    questions.forEach(q => {
-        q.style.display = 'block';
-    });
-    currentQuestion = totalQuestions;
-
-    // Update progress when showing all
-    updateProgress();
-
-    // Show evaluation card
-    const evalCard = document.getElementById('evaluation-card');
-    if (evalCard) {
-        evalCard.style.display = 'block';
-    }
-}
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input-field');
+const chatSendBtn = document.getElementById('chat-send-btn');
+const chatStatusBadge = document.getElementById('chat-status-badge');
+const chatTyping = document.getElementById('chat-typing');
 
 function showStatus(message, type = 'info') {
     const statusEl = document.getElementById('status-message');
@@ -276,7 +445,6 @@ function showStatus(message, type = 'info') {
         statusEl.style.color = 'var(--rh-black)';
     }
 
-    // Auto-hide after 5 seconds
     setTimeout(() => {
         statusEl.style.display = 'none';
     }, 5000);
@@ -294,41 +462,11 @@ function collectAnswers() {
         }
     });
 
-    // Include pre_approved flag if set
     if (isPreApproved) {
         answers.pre_approved = true;
     }
 
     return answers;
-}
-
-function updateProgress() {
-    const answers = collectAnswers();
-    // Don't count pre_approved in the question count
-    const questionAnswers = Object.keys(answers).filter(k => k !== 'pre_approved');
-    const answeredCount = questionAnswers.length;
-    const progressPercent = Math.round((answeredCount / totalQuestions) * 100);
-
-    // Update progress text and bar
-    document.getElementById('progress-text').textContent = `${answeredCount} of ${totalQuestions} questions answered`;
-    document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-
-    // Show appropriate banner when all questions answered
-    const readyBanner = document.getElementById('ready-banner');
-    const readyBannerPreApproved = document.getElementById('ready-banner-preapproved');
-
-    if (answeredCount === totalQuestions) {
-        if (isPreApproved) {
-            readyBanner.style.display = 'none';
-            readyBannerPreApproved.style.display = 'block';
-        } else {
-            readyBanner.style.display = 'block';
-            readyBannerPreApproved.style.display = 'none';
-        }
-    } else {
-        readyBanner.style.display = 'none';
-        readyBannerPreApproved.style.display = 'none';
-    }
 }
 
 async function saveAnswers() {
@@ -352,15 +490,227 @@ async function saveAnswers() {
         }
 
         notify.success('Answers saved successfully');
-        updateProgress();
     } catch (error) {
         console.error('Error saving answers:', error);
         notify.error('Failed to save answers: ' + error.message);
     }
 }
 
+function addChatMessage(role, content) {
+    // Remove placeholder if it exists
+    const placeholder = chatMessages.querySelector('.chat-placeholder');
+    if (placeholder) {
+        placeholder.remove();
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${role}-message`;
+    messageDiv.innerHTML = `
+        <div class="message-role">${role}</div>
+        <div class="message-content">${content}</div>
+    `;
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    messageCount++;
+}
+
+async function startEvaluation() {
+    // Save answers first
+    await saveAnswers();
+
+    // Check if core fields are filled
+    const answers = collectAnswers();
+    if (!answers.q2_idea || !answers.q4_market_relevance) {
+        notify.error('Please fill out at least the idea description and market relevance before starting evaluation');
+        return;
+    }
+
+    // Update UI
+    conversationActive = true;
+    chatInput.disabled = false;
+    chatSendBtn.disabled = false;
+    chatStatusBadge.textContent = 'Active';
+    chatStatusBadge.className = 'chat-status-badge active';
+    document.getElementById('evaluation-mode-badge').style.display = 'block';
+    document.getElementById('mode-text').textContent = 'Interactive evaluation in progress';
+    document.getElementById('start-eval-btn').disabled = true;
+    document.getElementById('start-eval-btn').textContent = 'Evaluation Started';
+
+    // Show typing indicator
+    chatTyping.style.display = 'flex';
+
+    try {
+        // Send initial context to IdeaBot to start conversation
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                context: 'ideabot',
+                message: `I have a project idea I'd like you to evaluate. Here's my initial submission:\n\nProject: ${answers.q3_project_name || 'Not specified'}\nIdea: ${answers.q2_idea}\nMarket Relevance: ${answers.q4_market_relevance}\nStrategic Priority: ${answers.q5_strategic_priority || 'Not specified'}\nCatcher Product: ${answers.q6_catcher_product || 'Not specified'}\n\nPlease begin evaluating this idea.`
+            })
+        });
+
+        chatTyping.style.display = 'none';
+
+        if (!response.ok) {
+            throw new Error('Failed to start evaluation');
+        }
+
+        const data = await response.json();
+        addChatMessage('assistant', data.content);
+
+        chatInput.focus();
+
+    } catch (error) {
+        console.error('Error starting evaluation:', error);
+        chatTyping.style.display = 'none';
+        notify.error('Failed to start evaluation: ' + error.message);
+        conversationActive = false;
+        chatInput.disabled = true;
+        chatSendBtn.disabled = true;
+    }
+}
+
+async function sendChatMessage() {
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    // Add user message
+    addChatMessage('user', message);
+    chatInput.value = '';
+
+    // Disable input while waiting
+    chatInput.disabled = true;
+    chatSendBtn.disabled = true;
+    chatTyping.style.display = 'flex';
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                context: 'ideabot',
+                message: message
+            })
+        });
+
+        chatTyping.style.display = 'none';
+
+        if (!response.ok) {
+            throw new Error('Failed to send message');
+        }
+
+        const data = await response.json();
+        addChatMessage('assistant', data.content);
+
+        // Re-enable input
+        chatInput.disabled = false;
+        chatSendBtn.disabled = false;
+        chatInput.focus();
+
+        // After 5+ message exchanges, offer to generate final evaluation
+        if (messageCount >= 10) { // 5 exchanges = 10 messages
+            setTimeout(() => {
+                checkForEvaluationReadiness();
+            }, 1000);
+        }
+
+    } catch (error) {
+        console.error('Error sending message:', error);
+        chatTyping.style.display = 'none';
+        notify.error('Failed to send message: ' + error.message);
+        chatInput.disabled = false;
+        chatSendBtn.disabled = false;
+    }
+}
+
+function checkForEvaluationReadiness() {
+    // Show option to generate final evaluation
+    const evalButton = document.createElement('div');
+    evalButton.style.cssText = 'margin-top: 16px; text-align: center; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);';
+    evalButton.innerHTML = `
+        <p style="margin-bottom: 12px; color: var(--rh-gray-mid);">
+            Ready to receive your final evaluation?
+        </p>
+        <button class="button button-primary" onclick="generateFinalEvaluation()">
+            Generate Final Evaluation
+        </button>
+    `;
+
+    const existingBtn = document.querySelector('[onclick="generateFinalEvaluation()"]');
+    if (!existingBtn) {
+        chatMessages.appendChild(evalButton);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+}
+
+async function generateFinalEvaluation() {
+    // Disable chat during evaluation
+    chatInput.disabled = true;
+    chatSendBtn.disabled = true;
+    chatStatusBadge.textContent = 'Generating Evaluation';
+    chatStatusBadge.className = 'chat-status-badge evaluating';
+
+    const progress = aiProgress.show('Generating Final Evaluation', 10);
+    progress.updateStatus('Analyzing conversation and answers...');
+
+    try {
+        const response = await fetch('/api/ideabot/evaluate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        progress.updateStatus('Processing AI response...');
+        progress.updateProgress(75);
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to generate evaluation');
+        }
+
+        const data = await response.json();
+
+        // Display evaluation
+        if (data.evaluation) {
+            displayEvaluation(data.evaluation);
+        }
+
+        progress.updateStatus('Evaluation complete!');
+        progress.updateProgress(100);
+        progress.complete();
+        notify.success('Final evaluation generated!');
+
+        // Update status
+        chatStatusBadge.textContent = 'Complete';
+        chatStatusBadge.className = 'chat-status-badge';
+        document.getElementById('mode-text').textContent = 'Evaluation complete';
+
+    } catch (error) {
+        console.error('Error generating evaluation:', error);
+        progress.cancel();
+        notify.error('Failed to generate evaluation: ' + error.message);
+
+        // Re-enable chat
+        chatInput.disabled = false;
+        chatSendBtn.disabled = false;
+        chatStatusBadge.textContent = 'Active';
+        chatStatusBadge.className = 'chat-status-badge active';
+    }
+}
+
 async function generateEvaluation() {
-    // Auto-save answers before generating evaluation
+    // Legacy function for pre-approved workflow
     await saveAnswers();
 
     const progress = aiProgress.show('Generating IdeaBot Evaluation', 10);
@@ -387,20 +737,8 @@ async function generateEvaluation() {
 
         const data = await response.json();
 
-        // Update answers in UI if extraction found new ones
-        if (data.answers) {
-            Object.keys(data.answers).forEach(key => {
-                const field = document.querySelector(`[data-answer-key="${key}"]`);
-                if (field && data.answers[key]) {
-                    field.textContent = data.answers[key];
-                }
-            });
-        }
-
-        // Display evaluation
         if (data.evaluation) {
             displayEvaluation(data.evaluation);
-            // Hide ready banner after evaluation is generated
             document.getElementById('ready-banner').style.display = 'none';
         }
 
@@ -539,30 +877,40 @@ async function approveIdea() {
     }
 }
 
-// Auto-save on blur (when user finishes editing an answer)
+// Auto-save on blur and handle Enter key for chat
 document.addEventListener('DOMContentLoaded', () => {
-    showQuestion(1);
-    updateProgress();  // Initial progress update
-
-    // Attach blur event listeners to answer fields
+    // Attach blur event listeners to answer fields for auto-save
     const answerFields = document.querySelectorAll('.answer-field');
     answerFields.forEach(field => {
         field.addEventListener('blur', () => {
-            // Debounced auto-save
             clearTimeout(field.saveTimeout);
             field.saveTimeout = setTimeout(() => {
                 saveAnswers();
             }, 1000);
         });
-
-        // Update progress on input (real-time feedback)
-        field.addEventListener('input', () => {
-            clearTimeout(field.progressTimeout);
-            field.progressTimeout = setTimeout(() => {
-                updateProgress();
-            }, 500);
-        });
     });
+
+    // Handle Enter key in chat input (Shift+Enter for newline)
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendChatMessage();
+        }
+    });
+
+    // Load existing conversation if any
+    {% if chat_history and chat_history|length > 0 %}
+    conversationActive = true;
+    messageCount = {{ chat_history|length }};
+    chatInput.disabled = false;
+    chatSendBtn.disabled = false;
+    chatStatusBadge.textContent = 'Active';
+    chatStatusBadge.className = 'chat-status-badge active';
+    document.getElementById('evaluation-mode-badge').style.display = 'block';
+    document.getElementById('mode-text').textContent = 'Interactive evaluation in progress';
+    document.getElementById('start-eval-btn').disabled = true;
+    document.getElementById('start-eval-btn').textContent = 'Evaluation Started';
+    {% endif %}
 });
 </script>
 

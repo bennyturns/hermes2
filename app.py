@@ -297,13 +297,16 @@ async def ideabot_view(request: Request, project_id: str):
             "answers": {},
             "evaluation": None
         }
+    # Load conversation history for interactive Q&A
+    chat_history = await get_conversation_history(project_id, context='ideabot')
 
     return templates.TemplateResponse(
         "ideabot.html",
         {
             "request": request,
             "project": project,
-            "ideabot_data": ideabot_data
+            "ideabot_data": ideabot_data,
+            "chat_history": chat_history
         }
     )
 
