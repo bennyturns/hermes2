@@ -145,6 +145,7 @@
 ## Phase: P2 Features (Quality of Life)
 
 **[T017] [P2] US-002** Add developer steering between ProtoBot steps
+- Status: 🔄 In Progress (Part 1: Pre-generation confirmation ✅, Part 2: Post-generation pending)
 - After research generation, ask "Want to refine before blueprint?"
 - After blueprint, ask "Ready for artifacts or need changes?"
 - Allow conversational iteration without page reloads
