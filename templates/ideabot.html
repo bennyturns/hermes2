@@ -469,6 +469,23 @@ function collectAnswers() {
     return answers;
 }
 
+function updateProgress() {
+    const answers = collectAnswers();
+
+    // Check if core questions are answered (we need at least 6 fields for pre-approved)
+    const requiredFields = ['q1_name', 'q2_idea', 'q3_project_name', 'q4_market_relevance', 'q5_strategic_priority', 'q6_catcher_product'];
+    const allRequiredFilled = requiredFields.every(field => answers[field] && answers[field].trim().length > 0);
+
+    // Show pre-approved banner if all required fields are filled and project is pre-approved
+    if (allRequiredFilled && isPreApproved) {
+        document.getElementById('ready-banner-preapproved').style.display = 'block';
+        document.getElementById('ready-banner').style.display = 'none';
+    } else {
+        document.getElementById('ready-banner-preapproved').style.display = 'none';
+        document.getElementById('ready-banner').style.display = 'none';
+    }
+}
+
 async function saveAnswers() {
     const answers = collectAnswers();
 
@@ -490,6 +507,7 @@ async function saveAnswers() {
         }
 
         notify.success('Answers saved successfully');
+        updateProgress(); // Check if we should show pre-approved banner
     } catch (error) {
         console.error('Error saving answers:', error);
         notify.error('Failed to save answers: ' + error.message);
@@ -888,6 +906,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveAnswers();
             }, 1000);
         });
+
+        // Update progress on input for real-time feedback
+        field.addEventListener('input', () => {
+            clearTimeout(field.progressTimeout);
+            field.progressTimeout = setTimeout(() => {
+                updateProgress();
+            }, 500);
+        });
     });
 
     // Handle Enter key in chat input (Shift+Enter for newline)
@@ -897,6 +923,9 @@ document.addEventListener('DOMContentLoaded', () => {
             sendChatMessage();
         }
     });
+
+    // Initial progress check
+    updateProgress();
 
     // Load existing conversation if any
     {% if chat_history and chat_history|length > 0 %}
