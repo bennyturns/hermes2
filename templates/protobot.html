@@ -289,7 +289,7 @@
                         <div id="blueprint-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
 
                         <div style="margin-top: 24px;">
-                            <button class="button button-primary" onclick="generateBlueprintPhase()">Generate Blueprint</button>
+                            <button class="button button-primary" onclick="generateBlueprintWithConfirm()">Generate Blueprint</button>
                         </div>
                         {% endif %}
                     </div>
@@ -725,6 +725,33 @@
         </div>
     </div>
 </div>
+
+<!-- Pre-Generation Confirmation Modal -->
+<div id="pre-gen-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h2>🎯 Execution Plan</h2>
+            <button class="modal-close" onclick="closePreGenModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 16px; font-size: 1.05rem; color: var(--rh-black);">
+                <strong>Here's what I'm about to do:</strong>
+            </p>
+            <div id="pre-gen-plan" style="background: var(--rh-gray-lighter); padding: 16px; border-radius: var(--border-radius-sm); margin-bottom: 20px; line-height: 1.6;">
+            </div>
+            <p style="margin-bottom: 20px; color: var(--rh-gray-mid); font-size: 0.95rem;">
+                You can edit the results afterward or chat to refine.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="button button-secondary" onclick="closePreGenModal()">Cancel</button>
+                <button class="button button-primary" onclick="confirmGeneration()" id="confirm-gen-btn">
+                    Proceed →
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <style>
 .phase-progress {
@@ -2809,6 +2836,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Developer Steering Functions (Issue #2)
+let pendingGenerationAction = null;
+
+function showExecutionPlan(planText, actionCallback) {
+    const modal = document.getElementById('pre-gen-modal');
+    const planDiv = document.getElementById('pre-gen-plan');
+    planDiv.innerHTML = planText;
+    pendingGenerationAction = actionCallback;
+    modal.style.display = 'flex';
+}
+
+function closePreGenModal() {
+    document.getElementById('pre-gen-modal').style.display = 'none';
+    pendingGenerationAction = null;
+}
+
+function confirmGeneration() {
+    closePreGenModal();
+    if (pendingGenerationAction) {
+        pendingGenerationAction();
+    }
+}
+
+// Test function for blueprint generation
+function generateBlueprintWithConfirm() {
+    const planText = `
+        <strong>Step 4: Generate Technical Blueprint</strong><br><br>
+        Based on your research, I'll create:<br>
+        • System architecture diagram<br>
+        • Technology stack recommendations<br>
+        • Implementation phases<br>
+        • Success criteria<br><br>
+        This will take ~45-60 seconds.
+    `;
+    showExecutionPlan(planText, generateBlueprintPhase);
+}
+
 </script>
 
 {% endblock %}
