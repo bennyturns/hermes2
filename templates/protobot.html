@@ -2854,9 +2854,18 @@ function closePreGenModal() {
 }
 
 function confirmGeneration() {
+    console.log('=== confirmGeneration called ===');
+    console.log('pendingGenerationAction:', pendingGenerationAction);
+
+    // Store the action BEFORE closing modal (which sets it to null)
+    const action = pendingGenerationAction;
     closePreGenModal();
-    if (pendingGenerationAction) {
-        pendingGenerationAction();
+
+    if (action) {
+        console.log('Executing action...');
+        action();
+    } else {
+        console.error('ERROR: No action to execute!');
     }
 }
 
