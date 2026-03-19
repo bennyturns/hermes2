@@ -174,6 +174,15 @@
                                     <p style="margin-top: 12px; font-size: 14px; color: var(--rh-gray-mid);">
                                         IdeaBot will challenge your idea with "why" questions. Be prepared to defend your thinking and demonstrate strategic alignment.
                                     </p>
+                                    <div style="margin-top: 20px; padding: 12px; background: #e8f4fd; border-left: 3px solid var(--rh-blue); border-radius: 4px;">
+                                        <strong style="color: var(--rh-blue);">💡 How it works:</strong>
+                                        <ol style="margin: 8px 0 0 0; padding-left: 20px; font-size: 13px; color: var(--rh-gray-dark);">
+                                            <li>Answer IdeaBot's questions thoroughly</li>
+                                            <li>Continue the conversation until IdeaBot signals readiness</li>
+                                            <li>IdeaBot will tell you when it's ready to make a decision</li>
+                                            <li>Only then should you request the final evaluation</li>
+                                        </ol>
+                                    </div>
                                 </div>
                             {% endif %}
                         </div>
@@ -559,6 +568,12 @@ async function startEvaluation() {
 
     try {
         // Send initial context to IdeaBot to start conversation
+        const catcherContacts = [];
+        if (answers.q7_catcher_pm) catcherContacts.push(`PM: ${answers.q7_catcher_pm}`);
+        if (answers.q8_catcher_em) catcherContacts.push(`EM: ${answers.q8_catcher_em}`);
+        if (answers.q9_catcher_tl) catcherContacts.push(`TL: ${answers.q9_catcher_tl}`);
+        const catcherContactsStr = catcherContacts.length > 0 ? `\nCatcher Team Contacts: ${catcherContacts.join(', ')}` : '';
+
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
@@ -567,7 +582,7 @@ async function startEvaluation() {
             body: JSON.stringify({
                 project_id: projectId,
                 context: 'ideabot',
-                message: `I have a project idea I'd like you to evaluate. Here's my initial submission:\n\nProject: ${answers.q3_project_name || 'Not specified'}\nIdea: ${answers.q2_idea}\nMarket Relevance: ${answers.q4_market_relevance}\nStrategic Priority: ${answers.q5_strategic_priority || 'Not specified'}\nCatcher Product: ${answers.q6_catcher_product || 'Not specified'}\n\nPlease begin evaluating this idea.`
+                message: `I have a project idea I'd like you to evaluate. Here's my initial submission:\n\nProject: ${answers.q3_project_name || 'Not specified'}\nIdea: ${answers.q2_idea}\nMarket Relevance: ${answers.q4_market_relevance}\nStrategic Priority: ${answers.q5_strategic_priority || 'Not specified'}\nCatcher Product: ${answers.q6_catcher_product || 'Not specified'}${catcherContactsStr}\n\nPlease begin evaluating this idea.`
             })
         });
 
@@ -579,6 +594,9 @@ async function startEvaluation() {
 
         const data = await response.json();
         addChatMessage('assistant', data.content);
+
+        // Check if IdeaBot signals readiness in its first response
+        checkForReadinessSignal(data.content);
 
         chatInput.focus();
 
@@ -632,12 +650,8 @@ async function sendChatMessage() {
         chatSendBtn.disabled = false;
         chatInput.focus();
 
-        // After 5+ message exchanges, offer to generate final evaluation
-        if (messageCount >= 10) { // 5 exchanges = 10 messages
-            setTimeout(() => {
-                checkForEvaluationReadiness();
-            }, 1000);
-        }
+        // Check if IdeaBot signals readiness in its response
+        checkForReadinessSignal(data.content);
 
     } catch (error) {
         console.error('Error sending message:', error);
@@ -648,24 +662,56 @@ async function sendChatMessage() {
     }
 }
 
-function checkForEvaluationReadiness() {
-    // Show option to generate final evaluation
+function checkForReadinessSignal(messageContent) {
+    // Detect if IdeaBot signals it's ready to make a decision
+    const readinessSignals = [
+        'ready to make my decision',
+        'ready to make a decision',
+        'ready for my evaluation',
+        'ready to provide my evaluation',
+        'ready for final evaluation',
+        'give you my final evaluation',
+        'would you like my evaluation',
+        'shall i provide my evaluation',
+        'ready to give you my decision',
+        'i\'m ready to evaluate',
+        'i can now provide',
+        'if you can address these',
+        'give me clarity on',
+        'ready to recommend'
+    ];
+
+    const lowerMessage = messageContent.toLowerCase();
+    const isReady = readinessSignals.some(signal => lowerMessage.includes(signal));
+
+    if (isReady) {
+        showEvaluationButton();
+    }
+}
+
+function showEvaluationButton() {
+    // Only show button if it doesn't already exist
+    const existingBtn = document.getElementById('eval-ready-button');
+    if (existingBtn) return;
+
     const evalButton = document.createElement('div');
-    evalButton.style.cssText = 'margin-top: 16px; text-align: center; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);';
+    evalButton.id = 'eval-ready-button';
+    evalButton.style.cssText = 'margin-top: 16px; padding: 20px; background: linear-gradient(135deg, var(--rh-green) 0%, #2d6b27 100%); color: white; border-radius: var(--border-radius-md); text-align: center; box-shadow: var(--shadow-md);';
     evalButton.innerHTML = `
-        <p style="margin-bottom: 12px; color: var(--rh-gray-mid);">
-            Ready to receive your final evaluation?
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px;">
+            <span style="font-size: 24px;">✓</span>
+            <strong style="font-size: 1.1rem;">IdeaBot is Ready to Decide</strong>
+        </div>
+        <p style="margin-bottom: 16px; opacity: 0.9; font-size: 0.95rem;">
+            IdeaBot has gathered enough information. Click below to request the final evaluation.
         </p>
-        <button class="button button-primary" onclick="generateFinalEvaluation()">
-            Generate Final Evaluation
+        <button class="button" onclick="generateFinalEvaluation()" style="background: white; color: var(--rh-green); font-weight: 600; padding: 12px 32px; font-size: 1rem;">
+            Request Final Evaluation →
         </button>
     `;
 
-    const existingBtn = document.querySelector('[onclick="generateFinalEvaluation()"]');
-    if (!existingBtn) {
-        chatMessages.appendChild(evalButton);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+    chatMessages.appendChild(evalButton);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 async function generateFinalEvaluation() {

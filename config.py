@@ -71,12 +71,12 @@ class Settings(BaseSettings):
     )
 
     mock_agents: bool = Field(
-        default=True,
+        default=False,
         description="Use mock AI responses instead of real Vertex AI calls"
     )
 
     mock_execution: bool = Field(
-        default=True,
+        default=False,
         description="Use dry-run mode for file execution (no actual writes)"
     )
 

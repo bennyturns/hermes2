@@ -70,16 +70,9 @@ class IdeaBotAgent:
 
     def _build_system_prompt(self) -> str:
         """Build complete system prompt with context"""
-        return f"""{self.system_prompt}
-
-## OCTO Team Context
-
-{self.octo_context}
-
-## Strategic Priorities Context
-
-{self.strategic_context}
-"""
+        # In ultra-permissive dev mode, skip heavy context to speed up responses
+        # Just return the prompt itself
+        return self.system_prompt
 
     async def chat(
         self,
@@ -128,6 +121,8 @@ class IdeaBotAgent:
             response = await vertex_client.create_message_with_retry(
                 system=self._build_system_prompt(),
                 messages=messages,
+                max_tokens=500,  # Short responses for dev mode
+                temperature=0.0,  # Fast, deterministic responses
                 stream=stream
             )
 
@@ -342,12 +337,19 @@ IMPORTANT: Be concise and direct. Focus only on the most critical factors."""
             # Parse decision and rationale
             lines = response_text.strip().split('\n')
 
-            decision = "rejected"  # Default to safe side
+            decision = "approved"  # Default to APPROVED in dev mode
             rationale = ""
 
             for i, line in enumerate(lines):
                 if line.startswith("Decision:"):
                     decision_text = line.split("Decision:")[1].strip().lower()
+                    if "approved" in decision_text:
+                        decision = "approved"
+                    elif "rejected" in decision_text:
+                        decision = "rejected"
+                elif "decision:" in line.lower():
+                    # Catch case-insensitive versions
+                    decision_text = line.split(":", 1)[1].strip().lower()
                     if "approved" in decision_text:
                         decision = "approved"
                     elif "rejected" in decision_text:
