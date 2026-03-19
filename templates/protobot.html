@@ -1982,11 +1982,15 @@ async function generateBlueprint() {
 }
 
 async function generateBlueprintPhase() {
-    const progress = aiProgress.show('Synthesizing Technical Blueprint', 120);
+    const progress = aiProgress.show('Synthesizing Technical Blueprint', 180);  // Increased estimate
     progress.updateStatus('AI is analyzing research and Q&A to create comprehensive blueprint...');
 
     try {
         progress.updateProgress(15);
+
+        // Create abort controller with 5-minute timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000);  // 5 minutes
 
         const response = await fetch('/api/protobot/generate-blueprint', {
             method: 'POST',
@@ -1995,8 +1999,11 @@ async function generateBlueprintPhase() {
             },
             body: JSON.stringify({
                 project_id: projectId
-            })
+            }),
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
 
         progress.updateProgress(85);
 

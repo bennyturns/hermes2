@@ -610,7 +610,7 @@ Be thorough, balanced, and actionable. This blueprint guides prototype developme
                 system=self._build_system_prompt(ideabot_payload),
                 messages=messages,
                 temperature=0.4,
-                max_tokens=32768
+                max_tokens=32768  # Full blueprint - client has 5min timeout
             )
 
             response_text = response.content[0].text
