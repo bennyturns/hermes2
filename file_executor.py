@@ -33,6 +33,156 @@ class FileExecutor:
     - Support mock and real modes
     """
 
+    async def _setup_context_directory(self, project_id: str, output_path: Path):
+        """
+        Create context directory and copy reference materials from IdeaBot session.
+
+        Creates:
+        - context/
+        - context/skills/
+        - context/diagrams/
+        - context/docs/
+        - context/code-samples/
+        - context/workflows/
+        - context/README.md
+        """
+        import base64
+
+        # Get IdeaBot session with reference materials
+        ideabot_session = await get_ideabot_session(project_id)
+        if not ideabot_session or not ideabot_session.get('reference_materials'):
+            logger.info("No reference materials to copy")
+            return
+
+        try:
+            references = json.loads(ideabot_session['reference_materials'])
+        except:
+            logger.warning("Failed to parse reference materials")
+            return
+
+        if not references:
+            return
+
+        # Create context directory structure
+        context_dir = output_path / 'context'
+        context_dir.mkdir(exist_ok=True)
+
+        subdirs = {
+            'skill': context_dir / 'skills',
+            'code': context_dir / 'code-samples',
+            'diagram': context_dir / 'diagrams',
+            'document': context_dir / 'docs',
+            'other': context_dir / 'workflows'
+        }
+
+        for subdir in subdirs.values():
+            subdir.mkdir(exist_ok=True)
+
+        # Copy reference materials to appropriate subdirectories
+        readme_sections = {
+            'skills': [],
+            'diagrams': [],
+            'documents': [],
+            'code-samples': [],
+            'workflows': []
+        }
+
+        for ref in references:
+            category = ref.get('category', 'other')
+            filename = ref.get('filename', 'unnamed.txt')
+            content = ref.get('content', '')
+            note = ref.get('note', '')
+
+            # Determine target directory
+            if category == 'skill':
+                target_dir = subdirs['skill']
+                readme_key = 'skills'
+            elif category == 'code':
+                target_dir = subdirs['code']
+                readme_key = 'code-samples'
+            elif category == 'diagram':
+                target_dir = subdirs['diagram']
+                readme_key = 'diagrams'
+            elif category == 'document':
+                target_dir = subdirs['document']
+                readme_key = 'documents'
+            else:
+                target_dir = subdirs['other']
+                readme_key = 'workflows'
+
+            # Write file
+            file_path = target_dir / filename
+
+            try:
+                # Handle base64 encoded content (images, PDFs)
+                if content.startswith('data:'):
+                    # Extract base64 data
+                    _, data = content.split(',', 1)
+                    decoded = base64.b64decode(data)
+                    with open(file_path, 'wb') as f:
+                        f.write(decoded)
+                else:
+                    # Plain text
+                    with open(file_path, 'w', encoding='utf-8') as f:
+                        f.write(content)
+
+                # Add to README section
+                readme_sections[readme_key].append({
+                    'filename': filename,
+                    'note': note
+                })
+
+                logger.info(f"Copied reference material: {filename}")
+
+            except Exception as e:
+                logger.error(f"Failed to copy reference material {filename}: {e}")
+
+        # Generate README.md
+        readme_content = self._generate_context_readme(readme_sections)
+        readme_path = context_dir / 'README.md'
+        with open(readme_path, 'w', encoding='utf-8') as f:
+            f.write(readme_content)
+
+        logger.info(f"✅ Created context directory with {len(references)} reference materials")
+
+    def _generate_context_readme(self, sections: Dict[str, List[Dict]]) -> str:
+        """Generate README.md for context directory"""
+        lines = [
+            "# Reference Materials",
+            "",
+            "This directory contains reference materials used during prototype generation.",
+            ""
+        ]
+
+        section_titles = {
+            'skills': 'Skills',
+            'diagrams': 'Diagrams',
+            'documents': 'Documents',
+            'code-samples': 'Code Samples',
+            'workflows': 'Workflows'
+        }
+
+        for key, title in section_titles.items():
+            items = sections.get(key, [])
+            if not items:
+                continue
+
+            lines.append(f"## {title}")
+            for item in items:
+                filename = item['filename']
+                note = item['note']
+                if note:
+                    lines.append(f"- **{filename}** - {note}")
+                else:
+                    lines.append(f"- **{filename}**")
+            lines.append("")
+
+        lines.append("---")
+        lines.append("*These materials were provided during IdeaBot and referenced throughout ProtoBot workflow*")
+        lines.append("")
+
+        return '\n'.join(lines)
+
     async def write_artifacts(self, project_id: str, output_dir: str) -> Dict[str, Any]:
         """
         Write all code, infrastructure, and communications artifacts to disk.
@@ -97,6 +247,9 @@ class FileExecutor:
         # Create output directory
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
+
+        # Create context directory and copy reference materials
+        await self._setup_context_directory(project_id, output_path)
 
         # Write each file
         written_files = []

@@ -98,9 +98,42 @@ Use this blueprint to guide:
 - Security considerations
 - Performance requirements
 - Integration patterns
-
-Generate code that aligns with the blueprint's recommendations and addresses identified risks.
 """
+
+            # Add reference materials if present
+            reference_materials = project_info.get('reference_materials', [])
+            if reference_materials:
+                prompt += f"""
+
+## Reference Materials ({len(reference_materials)} files)
+
+The following reference materials were provided and should guide your implementation:
+"""
+                for ref in reference_materials:
+                    category_icon = {'skill': '📋', 'code': '💻', 'diagram': '🖼️', 'document': '📄', 'other': '📎'}.get(ref.get('category', 'other'), '📎')
+                    filename = ref.get('filename', 'unknown')
+                    note = ref.get('note', '')
+                    category = ref.get('category', 'other')
+                    content_preview = ref.get('content', '')[:200] if ref.get('content') else ''
+
+                    prompt += f"\n{category_icon} **{filename}** ({category})"
+                    if note:
+                        prompt += f" - {note}"
+
+                    # For code samples, include a preview
+                    if category == 'code' and content_preview:
+                        prompt += f"\n  Preview: ```{content_preview}...```"
+
+                prompt += """
+
+**IMPORTANT:** Use these reference materials as templates and examples:
+- Follow similar code structure and patterns from code samples
+- Align with architecture shown in diagrams
+- Incorporate best practices from skills/documents
+- Maintain consistency with existing approaches
+"""
+
+            prompt += "\n\nGenerate code that aligns with the blueprint's recommendations and addresses identified risks."
 
         return prompt
 
@@ -127,17 +160,32 @@ Generate code that aligns with the blueprint's recommendations and addresses ide
         ideabot_session = await get_ideabot_session(project_id)
         project = await get_project(project_id)
 
+        # Load reference materials
+        reference_materials = []
+        if ideabot_session.get('reference_materials'):
+            try:
+                import json
+                reference_materials = json.loads(ideabot_session['reference_materials'])
+            except:
+                reference_materials = []
+
         blueprint = protobot_session['step4_blueprint']
         project_info = {
             'name': ideabot_session['answers'].get('q3_project_name', project.get('name', 'Unknown')),
             'idea': ideabot_session['answers'].get('q2_idea', ''),
             'strategic_priority': ideabot_session['answers'].get('q5_strategic_priority', ''),
             'catcher_product': ideabot_session['answers'].get('q6_catcher_product', ''),
-            'technical_approach': ideabot_session['answers'].get('q11_technical_approach', '')
+            'technical_approach': ideabot_session['answers'].get('q11_technical_approach', ''),
+            'reference_materials': reference_materials
         }
 
         # Code generation prompt
-        code_prompt = f"""Generate a complete working prototype based on the approved technical blueprint.
+        ref_note = ""
+        if reference_materials:
+            ref_list = "\n".join([f"  - {ref.get('filename', 'unknown')} ({ref.get('category', 'reference')})" for ref in reference_materials[:5]])
+            ref_note = f"\n\n**IMPORTANT - Reference Materials:**\nThe following reference materials should guide your implementation:\n{ref_list}\n\nUse these as templates/examples. Incorporate similar patterns, structure, and approaches."
+
+        code_prompt = f"""Generate a complete working prototype based on the approved technical blueprint.{ref_note}
 
 **Requirements:**
 1. Choose the appropriate programming language based on the project type

@@ -37,6 +37,7 @@ CREATE TABLE ideabot_sessions (
     project_id TEXT NOT NULL,
     answers TEXT,                      -- JSON: {"q1_name": "...", "q2_idea": "...", ...}
     evaluation TEXT,                   -- JSON: {"decision": "approved", "rationale": "..."}
+    reference_materials TEXT,          -- JSON: [{"filename": "...", "content": "...", "category": "..."}]
     approved_by TEXT,                  -- HIL who approved (if applicable)
     approved_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -248,6 +249,7 @@ async def init_db():
                 project_id TEXT NOT NULL,
                 answers TEXT,
                 evaluation TEXT,
+                reference_materials TEXT,
                 approved_by TEXT,
                 approved_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -355,6 +357,12 @@ async def init_db():
 
         try:
             await db.execute("ALTER TABLE quickproto_sessions ADD COLUMN completed_at TIMESTAMP")
+        except:
+            pass  # Column already exists
+
+        # Add reference_materials column to ideabot_sessions if it doesn't exist
+        try:
+            await db.execute("ALTER TABLE ideabot_sessions ADD COLUMN reference_materials TEXT")
         except:
             pass  # Column already exists
 

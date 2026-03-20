@@ -109,15 +109,42 @@
                         </div>
 
                         <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
-                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Research leads ready. Use "Next Step →" above to proceed to Step 2 and execute research.</p>
+                            <p style="margin: 0 0 12px 0; color: var(--rh-gray-mid);">✓ Research leads ready. Use "Next Step →" above to proceed to Step 2 and execute research.</p>
+                            <details style="margin-top: 12px;">
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Regenerate affected steps as needed</li>
+                                        <li>Or continue forward and edit blueprint in Step 4</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% else %}
                         <p class="mb-lg">No research leads generated yet. Click the button below to extract research leads from your approved IdeaBot answers.</p>
 
                         <div id="generate-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
 
-                        <div style="margin-top: 24px;">
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
                             <button class="button button-primary" onclick="generateLeads()">Generate Research Leads</button>
+                            <button class="button button-secondary" onclick="autoRunPrototype()" style="background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%); color: white; font-weight: 600;">
+                                🚀 Auto-Generate Complete Prototype
+                            </button>
+                        </div>
+                        <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <details>
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Regenerate affected steps as needed</li>
+                                        <li>Or continue forward and edit blueprint in Step 4</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% endif %}
                     </div>
@@ -171,13 +198,37 @@
                         {% endfor %}
 
                         <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
-                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Research findings complete. Use "Next Step →" above to proceed to Step 3 and generate follow-up questions.</p>
+                            <p style="margin: 0 0 12px 0; color: var(--rh-gray-mid);">✓ Research findings complete. Use "Next Step →" above to proceed to Step 3 and generate follow-up questions.</p>
+                            <details style="margin-top: 12px;">
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Regenerate affected steps as needed</li>
+                                        <li>Or continue forward and edit blueprint in Step 4</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% else %}
                         <p class="mb-lg">Research not executed yet. This step will investigate your project across 5 critical vectors.</p>
                         <div id="research-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
                         <div style="margin-top: 24px;">
                             <button class="button button-primary" onclick="executeResearchPhase()">Execute Research</button>
+                        </div>
+                        <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <details>
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Regenerate affected steps as needed</li>
+                                        <li>Or continue forward and edit blueprint in Step 4</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% endif %}
                     </div>
@@ -211,7 +262,18 @@
                         </div>
 
                         <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
-                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Follow-up Q&A ready. Use "Next Step →" above to proceed to Step 4 and generate the technical blueprint.</p>
+                            <p style="margin: 0 0 12px 0; color: var(--rh-gray-mid);">✓ Follow-up Q&A ready. Use "Next Step →" above to proceed to Step 4 and generate the technical blueprint.</p>
+                            <details style="margin-top: 12px;">
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Regenerate affected steps as needed</li>
+                                        <li>Or continue forward and edit blueprint in Step 4</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% else %}
                         <p class="mb-lg">No follow-up questions generated yet. Click below to analyze research gaps and generate targeted questions.</p>
@@ -220,6 +282,19 @@
 
                         <div style="margin-top: 24px;">
                             <button class="button button-primary" onclick="generateQuestionsPhase()">Generate Follow-up Questions</button>
+                        </div>
+                        <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <details>
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Regenerate affected steps as needed</li>
+                                        <li>Or continue forward and edit blueprint in Step 4</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% endif %}
                     </div>
@@ -240,6 +315,11 @@
                             <a href="/api/protobot/export-blueprint/{{ project.id }}" class="button button-secondary" download>
                                 📄 Export as Markdown
                             </a>
+                            {% if protobot_data.step6_code_artifacts or protobot_data.step6_infra_artifacts or protobot_data.step6_comms_artifacts %}
+                            <button class="button button-primary" onclick="regenerateWithUpdatedBlueprint()">
+                                🔄 Regenerate All Artifacts
+                            </button>
+                            {% endif %}
                         </div>
 
                         {% for category, data in protobot_data.step4_blueprint.items() %}
@@ -281,7 +361,18 @@
                         {% endfor %}
 
                         <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
-                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Technical blueprint complete. Use "Next Step →" above to proceed to Step 5 for Human-in-Loop approval.</p>
+                            <p style="margin: 0 0 12px 0; color: var(--rh-gray-mid);">✓ Technical blueprint complete. Use "Next Step →" above to proceed to Step 5 for Human-in-Loop approval.</p>
+                            <details style="margin-top: 12px;">
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Click "Edit Blueprint" above to modify the technical design</li>
+                                        <li>If artifacts were already generated, click "Regenerate All Artifacts"</li>
+                                        <li>Or update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% else %}
                         <p class="mb-lg">Blueprint not generated yet. Click below to synthesize all research and Q&A into a comprehensive technical design document.</p>
@@ -307,7 +398,18 @@
                         </div>
 
                         <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
-                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Blueprint approved. Use "Next Step →" above to proceed to Step 6 for code and infrastructure generation.</p>
+                            <p style="margin: 0 0 12px 0; color: var(--rh-gray-mid);">✓ Blueprint approved. Use "Next Step →" above to proceed to Step 6 for code and infrastructure generation.</p>
+                            <details style="margin-top: 12px;">
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Go back to Step 4 and edit the blueprint directly</li>
+                                        <li>Regenerate artifacts after making changes</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% else %}
                         <p class="mb-lg">Review the complete technical blueprint and approve to proceed with ProtoBot execution. This is the final checkpoint before code generation begins.</p>
@@ -328,6 +430,19 @@
                         <div style="margin-top: 24px; display: flex; gap: 12px;">
                             <button class="button button-primary" onclick="approveBlueprint()">Approve & Proceed to Execution</button>
                             <button class="button button-secondary" onclick="window.location.reload()">Back to Review Blueprint</button>
+                        </div>
+                        <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <details>
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Go back to Step 4 and edit the blueprint directly</li>
+                                        <li>Regenerate affected steps as needed</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% endif %}
                     </div>
@@ -459,6 +574,48 @@
                             {% endif %}
                         </div>
 
+                        <!-- Download & Run Panel (shown when code artifacts are generated) -->
+                        {% if protobot_data.step6_code_artifacts %}
+                        <div class="execution-panel" style="border: 2px solid var(--rh-blue); background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); margin-top: 24px;">
+                            <div class="panel-header" style="background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%); color: white;">
+                                <h3>📦 Download & Test Prototype</h3>
+                                <span class="badge badge-approved">Ready</span>
+                            </div>
+                            <div class="panel-body">
+                                <p style="margin-bottom: 16px; font-weight: 500;">Your prototype is ready! Download and test it locally before proceeding to validation:</p>
+
+                                <!-- Download Buttons -->
+                                <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                                    <button class="button button-primary" onclick="downloadPrototypeStep6()" style="background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%);">
+                                        📦 Download ZIP
+                                    </button>
+                                    <button class="button button-secondary" onclick="writeFilesStep6()">
+                                        💾 Write to Disk
+                                    </button>
+                                </div>
+
+                                <!-- Quick Start Instructions -->
+                                <div style="background: var(--rh-gray-lighter); border-left: 4px solid var(--rh-blue); padding: 16px; border-radius: 4px;">
+                                    <strong style="color: var(--rh-blue); display: block; margin-bottom: 12px;">🚀 Quick Start:</strong>
+                                    <div style="font-family: monospace; font-size: 0.9rem; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 4px; margin-bottom: 12px; position: relative;">
+                                        <button onclick="copyQuickStartStep6()" style="position: absolute; top: 8px; right: 8px; background: var(--rh-blue); color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                                            📋 Copy
+                                        </button>
+                                        <div id="quick-start-commands-step6">
+                                            <div>$ cd output/{{ project.id }}</div>
+                                            <div>$ make install</div>
+                                            <div>$ make run</div>
+                                            <div style="color: #6a9955;"># App runs on http://localhost:5001</div>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: var(--rh-gray-mid);">
+                                        💡 <strong>Tip:</strong> Test the prototype locally, then proceed to validation once you're satisfied.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <!-- Proceed to Validation button (shown when all artifacts are generated) -->
                         {% if protobot_data.step6_code_artifacts and protobot_data.step6_infra_artifacts and protobot_data.step6_comms_artifacts %}
                         <div class="mt-xl" style="text-align: center; padding: 24px; background-color: var(--rh-gray-lighter); border-radius: var(--border-radius-md);">
@@ -467,6 +624,31 @@
                             <button class="button button-primary" onclick="proceedToValidation()">
                                 Proceed to Validation →
                             </button>
+                            <details style="margin-top: 16px;">
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm); text-align: left;">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Go to Step 4 and click "Edit Blueprint" to modify technical design</li>
+                                        <li>Click "🔄 Regenerate All Artifacts" to recreate with updated requirements</li>
+                                    </ol>
+                                </div>
+                            </details>
+                        </div>
+                        {% else %}
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <details>
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Go to Step 4 and edit the blueprint directly</li>
+                                        <li>Then return here to generate artifacts</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% endif %}
                     </div>
@@ -513,7 +695,32 @@
 
                         {% if protobot_data.step7_validation and protobot_data.step7_validation.code_validated %}
                         <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
-                            <p style="margin: 0; color: var(--rh-gray-mid);">✓ Validation complete. Use "Next Step →" above to proceed to Step 8 for handoff execution.</p>
+                            <p style="margin: 0 0 12px 0; color: var(--rh-gray-mid);">✓ Validation complete. Use "Next Step →" above to proceed to Step 8 for handoff execution.</p>
+                            <details style="margin-top: 12px;">
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Go to Step 4 and click "Edit Blueprint" or "🔄 Regenerate All Artifacts"</li>
+                                        <li>Return here to re-validate updated artifacts</li>
+                                    </ol>
+                                </div>
+                            </details>
+                        </div>
+                        {% else %}
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <details>
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Go to Step 4 and click "Edit Blueprint" or "🔄 Regenerate All Artifacts"</li>
+                                        <li>Return here to re-validate updated artifacts</li>
+                                    </ol>
+                                </div>
+                            </details>
                         </div>
                         {% endif %}
                     </div>
@@ -550,6 +757,62 @@
                                 {% endif %}
                             </div>
                         </div>
+
+                        <!-- Download & Run Panel -->
+                        {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written %}
+                        <div class="execution-panel mb-lg" style="border: 2px solid var(--rh-blue); background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);">
+                            <div class="panel-header" style="background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%); color: white;">
+                                <h3>📦 Download & Run</h3>
+                                <span class="badge badge-approved">Ready</span>
+                            </div>
+                            <div class="panel-body">
+                                <p style="margin-bottom: 16px; font-weight: 500;">Your prototype is ready! Download and run it locally:</p>
+
+                                <!-- Download Buttons -->
+                                <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                                    <button class="button button-primary" onclick="downloadPrototype()" style="background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%);">
+                                        📦 Download ZIP
+                                    </button>
+                                    <button class="button button-secondary" onclick="copyOutputPath()">
+                                        📋 Copy Path
+                                    </button>
+                                </div>
+
+                                <!-- Quick Start Instructions -->
+                                <div style="background: var(--rh-gray-lighter); border-left: 4px solid var(--rh-blue); padding: 16px; border-radius: 4px;">
+                                    <strong style="color: var(--rh-blue); display: block; margin-bottom: 12px;">🚀 Quick Start:</strong>
+                                    <div style="font-family: monospace; font-size: 0.9rem; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 4px; margin-bottom: 12px; position: relative;">
+                                        <button onclick="copyQuickStart()" style="position: absolute; top: 8px; right: 8px; background: var(--rh-blue); color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">
+                                            📋 Copy
+                                        </button>
+                                        <div id="quick-start-commands">
+                                            <div>$ cd {{ protobot_data.step8_final_config.output_dir }}</div>
+                                            <div>$ make install</div>
+                                            <div>$ make run</div>
+                                            <div style="color: #6a9955;"># App runs on http://localhost:5001</div>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: var(--rh-gray-mid);">
+                                        💡 <strong>Tip:</strong> Check the README.md in your prototype for detailed setup instructions.
+                                    </div>
+                                </div>
+
+                                <!-- Output Location -->
+                                <div style="margin-top: 16px; padding: 12px; background: white; border: 1px solid var(--rh-gray-mid); border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: var(--rh-gray-mid); margin-bottom: 4px;">Output Location:</div>
+                                    <div style="font-family: monospace; font-size: 0.9rem; color: var(--rh-black);">
+                                        {{ protobot_data.step8_final_config.output_dir }}
+                                    </div>
+                                    <div style="font-size: 0.85rem; color: var(--rh-gray-mid); margin-top: 8px;">
+                                        📊 {{ protobot_data.step8_final_config.file_count }} files •
+                                        {% if protobot_data.step8_final_config.files_written_at %}
+                                        Generated {{ protobot_data.step8_final_config.files_written_at[:10] }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <!-- Git Patch Panel -->
                         <div class="execution-panel mb-lg">
@@ -668,16 +931,35 @@
                             </p>
                             {% endif %}
                         </div>
+
+                        <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
+                            <details>
+                                <summary style="cursor: pointer; color: var(--rh-red); font-weight: 500;">Need to update requirements?</summary>
+                                <div style="margin-top: 8px; padding: 12px; background: white; border-radius: var(--border-radius-sm);">
+                                    <p style="font-size: 0.9rem; margin-bottom: 8px;">You can iterate without re-approval:</p>
+                                    <ol style="font-size: 0.9rem; margin: 0; padding-left: 20px;">
+                                        <li>Update original IdeaBot answers: <a href="/ideabot/{{ project.id }}" style="color: var(--rh-red);">Edit Idea →</a></li>
+                                        <li>Go to Step 4 and click "Edit Blueprint" or "🔄 Regenerate All Artifacts"</li>
+                                        <li>Re-validate in Step 7, then return here to complete handoff with updated artifacts</li>
+                                    </ol>
+                                </div>
+                            </details>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
 
                 <!-- Right Panel: Chat -->
                 <div>
-                    <div class="chat-panel">
+                    <div class="chat-panel" id="chat-panel">
                         <div class="chat-header">
                             <h3>ProtoBot Chat</h3>
-                            <span class="chat-context-badge" id="chat-context-badge">Blueprint Agent</span>
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <span class="chat-context-badge" id="chat-context-badge">Blueprint Agent</span>
+                                <button class="button button-secondary" onclick="toggleChatFullscreen()" id="fullscreen-btn" style="padding: 4px 12px; font-size: 0.85rem;">
+                                    <span id="fullscreen-icon">⛶</span> Fullscreen
+                                </button>
+                            </div>
                         </div>
                         <div class="chat-messages" id="chat-messages">
                             {% if chat_data %}
@@ -910,6 +1192,21 @@
     flex-direction: column;
     height: 600px;
     background-color: var(--rh-gray-lightest);
+    transition: all 0.3s ease;
+}
+
+.chat-panel.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 9999;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
 }
 
 .chat-header {
@@ -2477,6 +2774,217 @@ async function approveValidation() {
 // Step 8: Handoff & Execution
 // ============================================================================
 
+// ============================================================================
+// Download & Run Functions
+// ============================================================================
+
+async function downloadPrototype() {
+    try {
+        // Show loading state
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '⏳ Preparing download...';
+
+        // Download ZIP file
+        const response = await fetch(`/api/protobot/${projectId}/download`);
+
+        if (!response.ok) {
+            throw new Error('Download failed');
+        }
+
+        // Get the blob and create download link
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        // Get filename from Content-Disposition header or use default
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `${projectId}.zip`;
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        btn.disabled = false;
+        btn.textContent = originalText;
+
+        // Show success notification
+        showNotification('✅ Download started! Check your downloads folder.', 'success');
+
+    } catch (error) {
+        console.error('Download error:', error);
+        alert(`❌ Failed to download prototype: ${error.message}`);
+        if (event.target) {
+            event.target.disabled = false;
+            event.target.textContent = originalText;
+        }
+    }
+}
+
+function copyOutputPath() {
+    const outputDir = '{{ protobot_data.step8_final_config.output_dir }}';
+    const fullPath = `/home/bturner/Workspace/hermes-7/hermes2/${outputDir}`;
+
+    navigator.clipboard.writeText(fullPath).then(() => {
+        showNotification('📋 Path copied to clipboard!', 'success');
+    }).catch(err => {
+        console.error('Copy failed:', err);
+        alert('Failed to copy to clipboard');
+    });
+}
+
+function copyQuickStart() {
+    const commands = document.getElementById('quick-start-commands').textContent.trim();
+
+    navigator.clipboard.writeText(commands).then(() => {
+        showNotification('📋 Commands copied to clipboard!', 'success');
+    }).catch(err => {
+        console.error('Copy failed:', err);
+        alert('Failed to copy to clipboard');
+    });
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 16px 24px;
+        background: ${type === 'success' ? 'var(--rh-green)' : type === 'error' ? 'var(--rh-red)' : 'var(--rh-blue)'};
+        color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-weight: 500;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+
+    document.body.appendChild(notification);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.3s';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// ============================================================================
+// Step 6: Download & Test Functions
+// ============================================================================
+
+async function downloadPrototypeStep6() {
+    // Use the same download function but show appropriate messaging
+    try {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '⏳ Preparing download...';
+
+        const response = await fetch(`/api/protobot/${projectId}/download`);
+
+        if (!response.ok) {
+            throw new Error('Download failed');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `${projectId}.zip`;
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        btn.disabled = false;
+        btn.textContent = originalText;
+
+        showNotification('✅ Download started! Extract and run locally to test.', 'success');
+
+    } catch (error) {
+        console.error('Download error:', error);
+        alert(`❌ Failed to download prototype: ${error.message}`);
+        if (event.target) {
+            event.target.disabled = false;
+            event.target.textContent = '📦 Download ZIP';
+        }
+    }
+}
+
+async function writeFilesStep6() {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Writing files...';
+
+    try {
+        const response = await fetch('/api/protobot/execute-files', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId,
+                output_dir: `output/${projectId}`
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'File execution failed');
+        }
+
+        const data = await response.json();
+        showNotification(`✅ Wrote ${data.file_count} files to ${data.output_dir}`, 'success');
+
+    } catch (error) {
+        console.error('File write error:', error);
+        showNotification(`❌ Error: ${error.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
+function copyQuickStartStep6() {
+    const commands = document.getElementById('quick-start-commands-step6').textContent.trim();
+
+    navigator.clipboard.writeText(commands).then(() => {
+        showNotification('📋 Commands copied to clipboard!', 'success');
+    }).catch(err => {
+        console.error('Copy failed:', err);
+        alert('Failed to copy to clipboard');
+    });
+}
+
+// ============================================================================
+// Step 8: File Execution
+// ============================================================================
+
 async function executeFileWrite() {
     const outputDir = document.getElementById('output-dir')?.value || `output/${projectId}`;
     const btn = event.target;
@@ -2889,6 +3397,212 @@ function generateBlueprintWithConfirm() {
     `;
     showExecutionPlan(planText, generateBlueprintPhase);
 }
+
+// Regenerate all artifacts with updated blueprint (iteration workflow)
+async function regenerateWithUpdatedBlueprint() {
+    if (!confirm('This will regenerate all code, infrastructure, and communications artifacts based on your updated blueprint. Previous artifacts will be replaced. Continue?')) {
+        return;
+    }
+
+    try {
+        notify.info('Starting regeneration...');
+
+        // Navigate to Step 6
+        await navigateToStep(6);
+
+        // Wait for navigation to complete
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Auto-trigger all three generation phases
+        notify.info('Generating code artifacts...');
+        await generateCode();
+
+        // Wait between generations
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        notify.info('Generating infrastructure artifacts...');
+        await generateInfrastructure();
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        notify.info('Generating communications artifacts...');
+        await generateCommunications();
+
+        notify.success('All artifacts regenerated successfully!');
+
+    } catch (error) {
+        console.error('Regeneration error:', error);
+        notify.error('Regeneration failed: ' + error.message);
+    }
+}
+
+// Fullscreen chat toggle
+function toggleChatFullscreen() {
+    const chatPanel = document.getElementById('chat-panel');
+    const fullscreenIcon = document.getElementById('fullscreen-icon');
+
+    if (chatPanel.classList.contains('fullscreen')) {
+        chatPanel.classList.remove('fullscreen');
+        fullscreenIcon.textContent = '⛶';
+        document.body.style.overflow = '';
+    } else {
+        chatPanel.classList.add('fullscreen');
+        fullscreenIcon.textContent = '⛶';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Auto-run complete prototype workflow
+async function autoRunPrototype() {
+    if (!confirm('This will automatically run through all ProtoBot steps (1-8) to generate a complete prototype. This takes about 5-7 minutes.\n\nSteps:\n1. Generate research leads\n2. Execute research\n3. Generate Q&A (auto-answered)\n4. Generate blueprint\n5. Approve blueprint\n6. Generate code\n7. Generate infrastructure & communications\n8. Write files to disk\n\nContinue?')) {
+        return;
+    }
+
+    const progressToast = notify.loading('Starting auto-run workflow...');
+
+    try {
+        // Step 1: Generate Research Leads
+        notify.info('Step 1/8: Generating research leads...');
+        const step1Resp = await fetch('/api/protobot/generate-leads', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+        if (!step1Resp.ok) {
+            const text = await step1Resp.text();
+            throw new Error(`Step 1 failed: ${text.substring(0, 200)}`);
+        }
+        await step1Resp.json();
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Step 2: Execute Research
+        notify.info('Step 2/8: Executing research (~60s)...');
+        const step2Resp = await fetch('/api/protobot/execute-research', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+        if (!step2Resp.ok) {
+            const text = await step2Resp.text();
+            throw new Error(`Step 2 failed: ${text.substring(0, 200)}`);
+        }
+        await step2Resp.json();
+
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Step 3: Generate Questions
+        notify.info('Step 3/8: Generating follow-up questions...');
+        const questionsResp = await fetch('/api/protobot/generate-questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+        if (!questionsResp.ok) {
+            const text = await questionsResp.text();
+            throw new Error(`Step 3 failed: ${text.substring(0, 200)}`);
+        }
+        const questionsData = await questionsResp.json();
+
+        // Auto-answer questions
+        const autoAnswers = questionsData.questions.map((q, i) => ({
+            question: q.question,
+            answer: `Auto-generated answer ${i + 1}: Use recommended best practices for prototype development.`
+        }));
+
+        await fetch('/api/protobot/save-answers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                answers: autoAnswers
+            })
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Step 4: Generate Blueprint
+        notify.info('Step 4/8: Generating blueprint (~60s)...');
+        await fetch('/api/protobot/generate-blueprint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Step 5: Approve Blueprint
+        notify.info('Step 5/8: Approving blueprint...');
+        await fetch('/api/protobot/approve-blueprint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Step 6: Generate Code
+        notify.info('Step 6/8: Generating code artifacts (~90s)...');
+        await fetch('/api/protobot/generate-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Step 7: Generate Infrastructure & Communications
+        notify.info('Step 7/8: Generating infrastructure & communications (~60s each)...');
+        await fetch('/api/protobot/generate-infrastructure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+
+        await fetch('/api/protobot/generate-communications', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Step 8: Write Files
+        notify.info('Step 8/8: Writing files to disk...');
+        const filesResp = await fetch('/api/protobot/execute-files', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                project_id: projectId,
+                output_dir: `output/${projectId}`
+            })
+        });
+        const filesData = await filesResp.json();
+
+        progressToast.dismiss();
+        notify.success(`🎉 Auto-run complete! Generated ${filesData.file_count} files in output/${projectId}`);
+
+        // Reload page to show updated state
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+
+    } catch (error) {
+        console.error('Auto-run error:', error);
+        progressToast.dismiss();
+        notify.error('Auto-run failed: ' + error.message);
+    }
+}
+
+// Close fullscreen on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const chatPanel = document.getElementById('chat-panel');
+        if (chatPanel && chatPanel.classList.contains('fullscreen')) {
+            toggleChatFullscreen();
+        }
+    }
+});
 
 </script>
 

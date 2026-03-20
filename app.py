@@ -289,13 +289,17 @@ async def ideabot_view(request: Request, project_id: str):
         ideabot_data = {
             "project_id": project_id,
             "answers": ideabot_session.get('answers', {}),
-            "evaluation": ideabot_session.get('evaluation')
+            "evaluation": ideabot_session.get('evaluation'),
+            "approved_by": ideabot_session.get('approved_by'),
+            "approved_at": ideabot_session.get('approved_at')
         }
     else:
         ideabot_data = {
             "project_id": project_id,
             "answers": {},
-            "evaluation": None
+            "evaluation": None,
+            "approved_by": None,
+            "approved_at": None
         }
     # Load conversation history for interactive Q&A
     chat_history = await get_conversation_history(project_id, context='ideabot')
@@ -1289,6 +1293,86 @@ async def ideabot_approve(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/ideabot/{project_id}/reference-materials")
+async def save_reference_materials(project_id: str, request: Request):
+    """
+    Save reference materials for a project.
+
+    Expects JSON body:
+    {
+        "references": [
+            {
+                "id": 123456,
+                "filename": "skill.md",
+                "category": "skill",
+                "type": "text/plain",
+                "size": 1024,
+                "content": "...",
+                "note": "Optional note"
+            }
+        ]
+    }
+    """
+    try:
+        data = await request.json()
+        references = data.get('references', [])
+
+        # Verify project exists
+        project = await get_project(project_id)
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        # Get or create IdeaBot session
+        session = await get_ideabot_session(project_id)
+        if not session:
+            session_id = await create_ideabot_session(project_id, {})
+            session = await get_ideabot_session(project_id)
+
+        # Store references in session
+        await update_ideabot_session(session['id'], {
+            'reference_materials': json.dumps(references)
+        })
+
+        logger.info(f"Saved {len(references)} reference materials for project {project_id}")
+
+        return JSONResponse({
+            "status": "success",
+            "count": len(references)
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving reference materials: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/ideabot/{project_id}/reference-materials")
+async def get_reference_materials(project_id: str):
+    """Get reference materials for a project"""
+    try:
+        # Get IdeaBot session
+        session = await get_ideabot_session(project_id)
+        if not session:
+            return JSONResponse({"references": []})
+
+        # Parse reference materials from session
+        references = []
+        if session.get('reference_materials'):
+            try:
+                references = json.loads(session['reference_materials'])
+            except:
+                references = []
+
+        return JSONResponse({
+            "references": references
+        })
+
+    except Exception as e:
+        logger.error(f"Error loading reference materials: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/protobot/generate-leads")
 async def protobot_generate_leads(request: Request):
     """
@@ -2163,6 +2247,73 @@ async def protobot_generate_patch(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/protobot/{project_id}/download")
+async def download_prototype(project_id: str):
+    """
+    Download prototype as ZIP file.
+
+    Returns ZIP containing all generated files.
+    """
+    try:
+        import zipfile
+        import io
+        from pathlib import Path
+        from fastapi.responses import StreamingResponse
+
+        # Get output directory from session
+        protobot_session = await get_protobot_session(project_id)
+        if not protobot_session:
+            raise HTTPException(status_code=404, detail="ProtoBot session not found")
+
+        step8_data = protobot_session.get('step8_final_config', {})
+        output_dir = step8_data.get('output_dir')
+
+        if not output_dir:
+            # Try default location
+            output_dir = f'output/{project_id}'
+
+        output_path = Path(output_dir)
+
+        if not output_path.exists():
+            raise HTTPException(status_code=404, detail="Output directory not found")
+
+        # Create ZIP in memory
+        zip_buffer = io.BytesIO()
+
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Add all files from output directory
+            for file_path in output_path.rglob('*'):
+                if file_path.is_file():
+                    # Create relative path for ZIP
+                    arcname = file_path.relative_to(output_path.parent)
+                    zip_file.write(file_path, arcname)
+
+        zip_buffer.seek(0)
+
+        # Get project name for filename
+        ideabot_session = await get_ideabot_session(project_id)
+        project_name = ideabot_session['answers'].get('q3_project_name', project_id) if ideabot_session else project_id
+        safe_name = project_name.lower().replace(' ', '-').replace('_', '-')
+
+        filename = f"{safe_name}.zip"
+
+        logger.info(f"Generated ZIP download for project {project_id}: {filename}")
+
+        return StreamingResponse(
+            io.BytesIO(zip_buffer.getvalue()),
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading prototype: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/protobot/send-communications")
 async def protobot_send_communications(request: Request):
     """
@@ -2290,6 +2441,64 @@ async def protobot_update_jira(request: Request):
 
     except Exception as e:
         logger.error(f"Error updating JIRA: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/protobot/regenerate-from-ideabot")
+async def protobot_regenerate_from_ideabot(request: Request):
+    """
+    Regenerate ProtoBot workflow from updated IdeaBot requirements.
+    Resets ProtoBot session to Step 1 and clears all generated content.
+
+    Expects JSON body:
+    {
+        "project_id": "konflux-feedback-agent"
+    }
+    """
+    try:
+        data = await request.json()
+        project_id = data.get('project_id')
+
+        if not project_id:
+            raise HTTPException(status_code=400, detail="project_id is required")
+
+        # Verify project exists and is approved
+        project = await get_project(project_id)
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        ideabot_session = await get_ideabot_session(project_id)
+        if not ideabot_session or not ideabot_session.get('approved_by'):
+            raise HTTPException(status_code=400, detail="Project must be approved first")
+
+        logger.info(f"Regenerating ProtoBot workflow for {project_id} from updated IdeaBot requirements")
+
+        # Reset ProtoBot session to Step 1, clearing all generated content
+        await update_protobot_session(project_id, {
+            'current_step': 1,
+            'step1_research_leads': [],
+            'step2_research_findings': None,
+            'step3_followup_qa': [],
+            'step4_blueprint': None,
+            'step5_hil_approved': False,
+            'step6_code_artifacts': [],
+            'step6_infra_artifacts': [],
+            'step6_comms_artifacts': None,
+            'step7_validation': None,
+            'step8_final_config': None
+        })
+
+        logger.info(f"✅ ProtoBot workflow reset for {project_id} - ready to regenerate from updated requirements")
+
+        return JSONResponse({
+            "status": "success",
+            "message": "ProtoBot workflow reset successfully",
+            "project_id": project_id,
+            "redirect_url": f"/protobot/{project_id}"
+        })
+
+    except Exception as e:
+        logger.error(f"Error regenerating ProtoBot: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

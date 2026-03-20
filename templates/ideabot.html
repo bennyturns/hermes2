@@ -142,6 +142,45 @@
                             </div>
                         </div>
 
+                        <!-- Reference Materials Section -->
+                        <div class="question-block" style="margin-top: 32px; border: 2px dashed var(--rh-gray-mid); background: var(--rh-gray-lighter); border-radius: var(--border-radius-md);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleReferenceSection()">
+                                <div>
+                                    <label style="display: block; font-weight: 600; margin-bottom: 4px; color: var(--rh-black);">📎 Reference Materials (Optional)</label>
+                                    <p style="color: var(--rh-gray-mid); margin: 0; font-size: 0.85rem;">Help ProtoBot by providing existing skills, diagrams, docs, or code samples</p>
+                                </div>
+                                <div id="reference-toggle-icon" style="font-size: 20px; transition: transform 0.3s;">▼</div>
+                            </div>
+
+                            <div id="reference-materials-content" style="display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--rh-gray-mid);">
+                                <!-- Upload Area -->
+                                <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                                    <label class="button button-secondary" style="cursor: pointer; margin: 0;">
+                                        <input type="file" id="reference-file-input" style="display: none;" multiple onchange="handleReferenceUpload(event)" accept=".md,.txt,.py,.js,.json,.yaml,.yml,.png,.jpg,.jpeg,.svg,.pdf,.docx">
+                                        📁 Upload Files
+                                    </label>
+                                    <button class="button button-secondary" onclick="showPasteDialog()">
+                                        📝 Paste Text
+                                    </button>
+                                    <div style="flex: 1; display: flex; align-items: center; color: var(--rh-gray-mid); font-size: 0.85rem;">
+                                        Max 10MB per file • Skills, Diagrams, Docs, Code
+                                    </div>
+                                </div>
+
+                                <!-- Uploaded References List -->
+                                <div id="reference-materials-list">
+                                    <!-- Will be populated dynamically -->
+                                </div>
+
+                                <!-- Empty State -->
+                                <div id="reference-empty-state" style="text-align: center; padding: 32px; color: var(--rh-gray-mid);">
+                                    <div style="font-size: 48px; margin-bottom: 8px;">📎</div>
+                                    <p style="margin: 0;">No reference materials yet</p>
+                                    <p style="margin: 4px 0 0 0; font-size: 0.85rem;">Upload existing skills, diagrams, or documentation</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Save and Start Buttons -->
                         <div style="margin-top: 24px; display: flex; gap: 12px;">
                             <button class="button button-secondary" onclick="saveAnswers()">Save Progress</button>
@@ -202,8 +241,38 @@
             </div>
             <!-- End Two Column Layout -->
 
+            <!-- ProtoBot Regeneration Banner (shown when project is approved) -->
+            {% if ideabot_data.get('approved_by') %}
+            <div class="card mt-xl" style="border-left: 4px solid var(--rh-blue);">
+                <div class="card-header" style="background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%); color: white;">
+                    <h2 class="card-title" style="color: white; margin: 0;">✓ Project Approved</h2>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: 16px;">This project has been approved and ProtoBot is available. You can edit requirements above and regenerate the prototype workflow.</p>
+
+                    <div style="display: flex; gap: 12px;">
+                        <button class="button button-primary" onclick="window.location.href='/protobot/{{ project.id }}'">
+                            Go to ProtoBot →
+                        </button>
+                        <button class="button button-secondary" onclick="regenerateProtoBot()">
+                            🔄 Regenerate ProtoBot from Updated Requirements
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 16px; padding: 12px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm); font-size: 0.9rem;">
+                        <strong>How iteration works:</strong>
+                        <ol style="margin: 8px 0 0 20px; padding: 0;">
+                            <li>Edit any answers above (they auto-save)</li>
+                            <li>Click "Regenerate ProtoBot" to restart the workflow</li>
+                            <li>ProtoBot will use your updated requirements</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Evaluation Card (shown after all questions) -->
-            {% if ideabot_data.get('evaluation') %}
+            {% if ideabot_data.get('evaluation') and not ideabot_data.get('approved_by') %}
             <div id="evaluation-card" class="card mt-xl" style="display: none; border-left: 4px solid var(--rh-green);">
                 <div class="card-header">
                     <h2 class="card-title">IdeaBot Evaluation</h2>
@@ -941,8 +1010,279 @@ async function approveIdea() {
     }
 }
 
+async function regenerateProtoBot() {
+    if (!confirm('This will reset the ProtoBot workflow and regenerate from your updated IdeaBot requirements. Continue?')) {
+        return;
+    }
+
+    const loadingToast = notify.loading('Regenerating ProtoBot workflow...');
+
+    try {
+        const response = await fetch('/api/protobot/regenerate-from-ideabot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: projectId
+            })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to regenerate ProtoBot');
+        }
+
+        const data = await response.json();
+
+        loadingToast.dismiss();
+        notify.success('ProtoBot workflow reset! Redirecting...');
+
+        // Redirect to ProtoBot Step 1
+        setTimeout(() => {
+            window.location.href = `/protobot/${projectId}`;
+        }, 1500);
+
+    } catch (error) {
+        console.error('Error regenerating ProtoBot:', error);
+        loadingToast.dismiss();
+        notify.error('Failed to regenerate: ' + error.message);
+    }
+}
+
+// Reference Materials Functionality
+let referenceMaterials = [];
+
+function toggleReferenceSection() {
+    const content = document.getElementById('reference-materials-content');
+    const icon = document.getElementById('reference-toggle-icon');
+
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        content.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+function categorizeFile(filename) {
+    const ext = filename.split('.').pop().toLowerCase();
+    const categories = {
+        'skill': ['md', 'txt'],
+        'code': ['py', 'js', 'json', 'yaml', 'yml'],
+        'diagram': ['png', 'jpg', 'jpeg', 'svg'],
+        'document': ['pdf', 'docx']
+    };
+
+    for (const [category, extensions] of Object.entries(categories)) {
+        if (extensions.includes(ext)) {
+            return category;
+        }
+    }
+    return 'other';
+}
+
+function getFileIcon(category) {
+    const icons = {
+        'skill': '📋',
+        'code': '💻',
+        'diagram': '🖼️',
+        'document': '📄',
+        'other': '📎'
+    };
+    return icons[category] || '📎';
+}
+
+async function handleReferenceUpload(event) {
+    const files = Array.from(event.target.files);
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    for (const file of files) {
+        if (file.size > maxSize) {
+            showStatus(`File ${file.name} exceeds 10MB limit`, 'error');
+            continue;
+        }
+
+        const category = categorizeFile(file.name);
+        const reader = new FileReader();
+
+        reader.onload = async (e) => {
+            const referenceItem = {
+                id: Date.now() + Math.random(),
+                filename: file.name,
+                category: category,
+                type: file.type || 'text/plain',
+                size: file.size,
+                content: e.target.result,
+                note: ''
+            };
+
+            referenceMaterials.push(referenceItem);
+            renderReferenceMaterials();
+            await saveReferenceMaterials();
+            showStatus(`Added ${file.name}`, 'success');
+        };
+
+        // Read as base64 for binary files, text for text files
+        if (category === 'diagram' || category === 'document') {
+            reader.readAsDataURL(file);
+        } else {
+            reader.readAsText(file);
+        }
+    }
+
+    // Reset input
+    event.target.value = '';
+}
+
+function showPasteDialog() {
+    const filename = prompt('Enter a filename for this content (e.g., workflow.md):');
+    if (!filename) return;
+
+    const content = prompt('Paste your content:');
+    if (!content) return;
+
+    const category = categorizeFile(filename);
+    const referenceItem = {
+        id: Date.now(),
+        filename: filename,
+        category: category,
+        type: 'text/plain',
+        size: content.length,
+        content: content,
+        note: ''
+    };
+
+    referenceMaterials.push(referenceItem);
+    renderReferenceMaterials();
+    saveReferenceMaterials();
+    showStatus(`Added ${filename}`, 'success');
+}
+
+function renderReferenceMaterials() {
+    const listEl = document.getElementById('reference-materials-list');
+    const emptyEl = document.getElementById('reference-empty-state');
+
+    if (referenceMaterials.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.style.display = 'block';
+        return;
+    }
+
+    emptyEl.style.display = 'none';
+
+    listEl.innerHTML = referenceMaterials.map(item => `
+        <div class="reference-item" style="border: 1px solid var(--rh-gray-mid); border-radius: var(--border-radius-sm); padding: 12px; margin-bottom: 12px; background: white;">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <span style="font-size: 20px;">${getFileIcon(item.category)}</span>
+                        <strong>${item.filename}</strong>
+                        <span class="badge badge-approved" style="font-size: 0.75rem;">${item.category}</span>
+                    </div>
+                    <div style="color: var(--rh-gray-mid); font-size: 0.85rem; margin-bottom: 8px;">
+                        Size: ${(item.size / 1024).toFixed(1)} KB
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label style="display: block; font-size: 0.85rem; color: var(--rh-gray-mid); margin-bottom: 4px;">Note (optional):</label>
+                        <input type="text"
+                               value="${item.note}"
+                               onchange="updateReferenceNote(${item.id}, this.value)"
+                               placeholder="Add context about this file..."
+                               style="width: 100%; padding: 6px; border: 1px solid var(--rh-gray-mid); border-radius: 4px; font-size: 0.85rem;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-left: 12px;">
+                    <button class="button button-secondary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="previewReference(${item.id})">
+                        👁️ Preview
+                    </button>
+                    <button class="button button-secondary" style="padding: 6px 12px; font-size: 0.85rem; background: var(--rh-red); color: white;" onclick="removeReference(${item.id})">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateReferenceNote(id, note) {
+    const item = referenceMaterials.find(r => r.id === id);
+    if (item) {
+        item.note = note;
+        saveReferenceMaterials();
+    }
+}
+
+function previewReference(id) {
+    const item = referenceMaterials.find(r => r.id === id);
+    if (!item) return;
+
+    if (item.category === 'diagram' || item.category === 'document') {
+        // For binary files, open in new window
+        const win = window.open('', '_blank');
+        if (item.category === 'diagram') {
+            win.document.write(`<img src="${item.content}" style="max-width: 100%; height: auto;">`);
+        } else {
+            win.document.write(`<embed src="${item.content}" type="${item.type}" width="100%" height="100%">`);
+        }
+    } else {
+        // For text files, show in alert (could be enhanced with a modal)
+        const preview = item.content.substring(0, 1000);
+        alert(`Preview of ${item.filename}:\n\n${preview}${item.content.length > 1000 ? '\n\n...(truncated)' : ''}`);
+    }
+}
+
+function removeReference(id) {
+    if (!confirm('Remove this reference material?')) return;
+
+    referenceMaterials = referenceMaterials.filter(r => r.id !== id);
+    renderReferenceMaterials();
+    saveReferenceMaterials();
+    showStatus('Reference material removed', 'success');
+}
+
+async function saveReferenceMaterials() {
+    try {
+        const response = await fetch(`/api/ideabot/${projectId}/reference-materials`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ references: referenceMaterials })
+        });
+
+        if (!response.ok) {
+            console.error('Failed to save reference materials');
+        }
+    } catch (error) {
+        console.error('Error saving reference materials:', error);
+    }
+}
+
+async function loadReferenceMaterials() {
+    try {
+        const response = await fetch(`/api/ideabot/${projectId}/reference-materials`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.references) {
+                referenceMaterials = data.references;
+                renderReferenceMaterials();
+
+                // Auto-expand if there are references
+                if (referenceMaterials.length > 0) {
+                    document.getElementById('reference-materials-content').style.display = 'block';
+                    document.getElementById('reference-toggle-icon').style.transform = 'rotate(180deg)';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading reference materials:', error);
+    }
+}
+
 // Auto-save on blur and handle Enter key for chat
 document.addEventListener('DOMContentLoaded', () => {
+    // Load existing reference materials
+    loadReferenceMaterials();
     // Attach blur event listeners to answer fields for auto-save
     const answerFields = document.querySelectorAll('.answer-field');
     answerFields.forEach(field => {

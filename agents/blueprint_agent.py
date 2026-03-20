@@ -106,9 +106,39 @@ This project has been approved by IdeaBot. Here is the complete context:
 **IdeaBot Evaluation:**
 Decision: {ideabot_payload.get('evaluation', {}).get('decision', 'Unknown')}
 Rationale: {ideabot_payload.get('evaluation', {}).get('rationale', 'Not provided')}
-
-Use this information to guide your research and blueprint generation.
 """
+
+            # Add reference materials if present
+            reference_materials = ideabot_payload.get('reference_materials', [])
+            if reference_materials:
+                prompt += f"""
+
+**Reference Materials Provided ({len(reference_materials)} files):**
+
+The following reference materials were uploaded during IdeaBot and will be available in the context/ directory:
+"""
+                for ref in reference_materials:
+                    category_icon = {'skill': '📋', 'code': '💻', 'diagram': '🖼️', 'document': '📄', 'other': '📎'}.get(ref.get('category', 'other'), '📎')
+                    filename = ref.get('filename', 'unknown')
+                    note = ref.get('note', '')
+                    category = ref.get('category', 'other')
+
+                    prompt += f"\n{category_icon} **{filename}** ({category})"
+                    if note:
+                        prompt += f" - {note}"
+
+                prompt += """
+
+**IMPORTANT:** These reference materials should be:
+- Analyzed during research to understand existing patterns and approaches
+- Referenced in the blueprint to ensure alignment
+- Used as examples/templates during code generation
+- Mentioned in validation to confirm incorporation
+
+When generating research leads, code, or blueprints, explicitly reference these materials where relevant.
+"""
+
+            prompt += "\n\nUse this information to guide your research and blueprint generation."
 
         return prompt
 
@@ -133,17 +163,30 @@ Use this information to guide your research and blueprint generation.
         from database import get_project
         project = await get_project(project_id)
 
+        # Load reference materials
+        reference_materials = []
+        if ideabot_session.get('reference_materials'):
+            try:
+                import json
+                reference_materials = json.loads(ideabot_session['reference_materials'])
+            except:
+                reference_materials = []
+
         ideabot_payload = {
             'project_id': project_id,
             'project_name': ideabot_session['answers'].get('q3_project_name', 'Unknown'),
             'lead': ideabot_session['answers'].get('q1_name', 'Unknown'),
             'strategic_priority': ideabot_session['answers'].get('q5_strategic_priority', 'Unknown'),
             'answers': ideabot_session['answers'],
-            'evaluation': ideabot_session.get('evaluation', {})
+            'evaluation': ideabot_session.get('evaluation', {}),
+            'reference_materials': reference_materials
         }
 
         # Create research lead generation prompt
-        lead_prompt = """Based on the IdeaBot approval data provided in the system context, extract 8 research leads.
+        ref_count = len(reference_materials)
+        ref_note = f"\n\n**IMPORTANT: {ref_count} reference materials have been provided (skills, diagrams, docs, code samples). These will be available in the context/ directory and should be analyzed.**" if ref_count > 0 else ""
+
+        lead_prompt = f"""Based on the IdeaBot approval data provided in the system context, extract 8 research leads.{ref_note}
 
 For each of these fields, identify what to research:
 1. Project Name
@@ -218,14 +261,42 @@ Continue this pattern for all 8 leads. Be specific and actionable. Each lead sho
                         'action': action
                     })
 
-            logger.info(f"Generated {len(leads)} research leads for project {project_id}")
+            # Add leads for reference materials
+            if reference_materials:
+                for ref in reference_materials[:3]:  # Add up to 3 reference material leads
+                    filename = ref.get('filename', 'Reference file')
+                    category = ref.get('category', 'reference')
+                    note = ref.get('note', 'Analyze this reference material')
+
+                    leads.append({
+                        'source': f'Reference Material ({category})',
+                        'lead': filename,
+                        'action': note if note else f'Analyze {filename} to understand existing patterns and incorporate insights'
+                    })
+
+            logger.info(f"Generated {len(leads)} research leads for project {project_id} ({len(reference_materials)} from reference materials)")
 
             return leads
 
         except Exception as e:
             logger.error(f"Error generating research leads: {e}")
             # Return default leads as fallback
-            return self._get_default_research_leads(ideabot_session['answers'])
+            default_leads = self._get_default_research_leads(ideabot_session['answers'])
+
+            # Still add reference material leads even in fallback
+            if reference_materials:
+                for ref in reference_materials[:2]:
+                    filename = ref.get('filename', 'Reference file')
+                    category = ref.get('category', 'reference')
+                    note = ref.get('note', 'Analyze this reference material')
+
+                    default_leads.append({
+                        'source': f'Reference Material ({category})',
+                        'lead': filename,
+                        'action': note if note else f'Analyze {filename}'
+                    })
+
+            return default_leads
 
     def _get_default_research_leads(self, answers: Dict[str, Any]) -> List[Dict[str, str]]:
         """Generate default research leads when AI fails"""
@@ -295,17 +366,28 @@ Continue this pattern for all 8 leads. Be specific and actionable. Each lead sho
         from database import get_project
         project = await get_project(project_id)
 
+        # Load reference materials
+        reference_materials = []
+        if ideabot_session.get('reference_materials'):
+            try:
+                import json
+                reference_materials = json.loads(ideabot_session['reference_materials'])
+            except:
+                reference_materials = []
+
         ideabot_payload = {
             'project_id': project_id,
             'project_name': ideabot_session['answers'].get('q3_project_name', 'Unknown'),
             'lead': ideabot_session['answers'].get('q1_name', 'Unknown'),
             'strategic_priority': ideabot_session['answers'].get('q5_strategic_priority', 'Unknown'),
             'answers': ideabot_session['answers'],
-            'evaluation': ideabot_session.get('evaluation', {})
+            'evaluation': ideabot_session.get('evaluation', {}),
+            'reference_materials': reference_materials
         }
 
         # Research prompt
-        research_prompt = f"""Conduct comprehensive research across all 5 vectors based on the IdeaBot approval data and research leads.
+        ref_note = f"\n\n**IMPORTANT:** {len(reference_materials)} reference materials are available. Analyze them and incorporate insights into your research findings." if reference_materials else ""
+        research_prompt = f"""Conduct comprehensive research across all 5 vectors based on the IdeaBot approval data and research leads.{ref_note}
 
 Research Leads to investigate:
 {json.dumps(protobot_session['step1_research_leads'], indent=2)}
@@ -554,15 +636,26 @@ Only include 5 questions. Leave answers empty (HIL will fill them in)."""
         from database import get_project
         project = await get_project(project_id)
 
+        # Load reference materials
+        reference_materials = []
+        if ideabot_session.get('reference_materials'):
+            try:
+                import json
+                reference_materials = json.loads(ideabot_session['reference_materials'])
+            except:
+                reference_materials = []
+
         ideabot_payload = {
             'project_id': project_id,
             'project_name': ideabot_session['answers'].get('q3_project_name', 'Unknown'),
             'answers': ideabot_session['answers'],
-            'evaluation': ideabot_session.get('evaluation', {})
+            'evaluation': ideabot_session.get('evaluation', {}),
+            'reference_materials': reference_materials
         }
 
         # Blueprint synthesis prompt
-        blueprint_prompt = f"""Synthesize all research and Q&A into a comprehensive technical blueprint.
+        ref_note = f"\n\n**IMPORTANT:** Reference the {len(reference_materials)} provided reference materials. Ensure the blueprint aligns with existing patterns and approaches shown in these materials." if reference_materials else ""
+        blueprint_prompt = f"""Synthesize all research and Q&A into a comprehensive technical blueprint.{ref_note}
 
 Research Findings:
 {json.dumps(research_findings, indent=2)}
