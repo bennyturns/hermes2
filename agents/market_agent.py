@@ -5,10 +5,13 @@ Provides market analysis for IdeaBot submissions with:
 - Market intelligence gathering (TAM, SAM, competitive landscape, etc.)
 - Multi-dimensional evaluation (market opportunity, winability, feasibility, risk, strategic value)
 - TIER 1-4 recommendations based on comprehensive scoring
+
+Based on market analysis framework by Ron Haberman (redhat-et/hermes PR #8)
 """
 
 import logging
 import json
+from pathlib import Path
 from typing import Dict, Any
 
 from vertex_client import vertex_client
@@ -16,10 +19,17 @@ from config import settings
 
 logger = logging.getLogger(__name__)
 
+# Market analysis documentation paths
+DOCS_DIR = Path(__file__).parent.parent / "docs"
+MARKET_ANALYSIS_DIR = DOCS_DIR / "market-analysis"
+
 
 class MarketAgent:
     """
     Market Analysis Agent for IdeaBot execution.
+
+    Based on comprehensive market analysis framework by Ron Haberman.
+    See docs/market-analysis/ for detailed prompts and methodology.
 
     Responsibilities:
     - Gather comprehensive market intelligence (9 investigation areas)
@@ -29,7 +39,30 @@ class MarketAgent:
     """
 
     def __init__(self):
-        pass
+        self._investigation_prompts = None
+        self._evaluation_prompts = None
+
+    def _load_prompt_files(self):
+        """Load Ron's detailed market analysis prompts from markdown files"""
+        if self._investigation_prompts is None:
+            try:
+                investigation_path = MARKET_ANALYSIS_DIR / "market-investigation-prompts.md"
+                with open(investigation_path, 'r') as f:
+                    self._investigation_prompts = f.read()
+                logger.info("Loaded market investigation prompts")
+            except Exception as e:
+                logger.warning(f"Could not load investigation prompts: {e}")
+                self._investigation_prompts = ""
+
+        if self._evaluation_prompts is None:
+            try:
+                evaluation_path = MARKET_ANALYSIS_DIR / "market-evaluation-prompts.md"
+                with open(evaluation_path, 'r') as f:
+                    self._evaluation_prompts = f.read()
+                logger.info("Loaded market evaluation prompts")
+            except Exception as e:
+                logger.warning(f"Could not load evaluation prompts: {e}")
+                self._evaluation_prompts = ""
 
     async def gather_market_intelligence(self, submission_data: Dict[str, Any], octo_definition: str, strategic_focus: str) -> Dict:
         """
