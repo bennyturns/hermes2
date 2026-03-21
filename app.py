@@ -9,6 +9,7 @@ import json
 from datetime import datetime
 from contextlib import asynccontextmanager
 
+import aiosqlite
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
