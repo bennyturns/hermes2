@@ -285,6 +285,55 @@ async def init_db():
         await db.execute("CREATE INDEX IF NOT EXISTS idx_protobot_project ON protobot_sessions(project_id)")
         await db.execute("CREATE INDEX IF NOT EXISTS idx_protobot_step ON protobot_sessions(current_step)")
 
+        # Create market_analysis table
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS market_analysis (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ideabot_session_id INTEGER NOT NULL,
+                project_id TEXT NOT NULL,
+
+                -- Market sizing
+                tam_current_millions REAL,
+                sam_current_millions REAL,
+                sam_3yr_millions REAL,
+
+                -- Projections
+                realistic_market_share_pct REAL,
+                projected_3yr_arr_millions REAL,
+                projected_5yr_arr_millions REAL,
+
+                -- Assessment scores
+                market_opportunity_score INTEGER,
+                competitive_winability_score INTEGER,
+                investment_feasibility_score INTEGER,
+                execution_risk_score INTEGER,
+                strategic_value_score INTEGER,
+
+                -- Recommendation
+                recommendation_tier TEXT,
+                overall_recommendation TEXT,
+                confidence_level TEXT,
+
+                -- Full results JSON
+                market_intelligence_json TEXT,
+                evaluation_json TEXT,
+
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                FOREIGN KEY (ideabot_session_id) REFERENCES ideabot_sessions(id) ON DELETE CASCADE,
+                FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+            )
+        """)
+
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_market_analysis_ideabot ON market_analysis(ideabot_session_id)")
+        await db.execute("CREATE INDEX IF NOT EXISTS idx_market_analysis_project ON market_analysis(project_id)")
+
+        # Migrate: add market_analysis_summary column to ideabot_sessions if missing
+        try:
+            await db.execute("ALTER TABLE ideabot_sessions ADD COLUMN market_analysis_summary TEXT")
+        except:
+            pass  # Column already exists
+
         # Create agent_conversations table
         await db.execute("""
             CREATE TABLE IF NOT EXISTS agent_conversations (

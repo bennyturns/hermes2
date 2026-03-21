@@ -1373,6 +1373,181 @@ async def get_reference_materials(project_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/ideabot/{project_id}/market-analysis")
+async def run_market_analysis(project_id: str):
+    """Run comprehensive market analysis for a project"""
+    try:
+        from agents.market_agent import market_agent
+
+        # Get IdeaBot session
+        session = await get_ideabot_session(project_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="IdeaBot session not found")
+
+        if not session.get('answers'):
+            raise HTTPException(status_code=400, detail="No answers found. Complete IdeaBot first.")
+
+        # Parse answers
+        answers = json.loads(session['answers']) if isinstance(session['answers'], str) else session['answers']
+
+        # Prepare submission data for market analysis
+        submission_data = {
+            'name': answers.get('q1_name', ''),
+            'project_name': answers.get('q3_project_name', ''),
+            'idea': answers.get('q2_idea', ''),
+            'market_relevance': answers.get('q4_market_relevance', ''),
+            'strategic_priority': answers.get('q5_strategic_priority', ''),
+            'catcher_product': answers.get('q6_catcher_product', '')
+        }
+
+        # Load OCTO definition and strategic focus
+        octo_definition = ""
+        strategic_focus = ""
+        try:
+            octo_path = settings.octo_definition_path
+            with open(octo_path, 'r') as f:
+                octo_definition = f.read()
+        except Exception as e:
+            logger.warning(f"Could not load OCTO definition: {e}")
+
+        # Run comprehensive market analysis
+        logger.info(f"Starting market analysis for project {project_id}")
+        result = await market_agent.comprehensive_market_analysis(
+            submission_data,
+            octo_definition,
+            strategic_focus
+        )
+
+        # Extract key metrics for database storage
+        market_intel = result.get('market_intelligence', {})
+        evaluation = result.get('evaluation', {})
+
+        sam_data = market_intel.get('sam', {})
+        competitive = evaluation.get('assessment_scores', {}).get('competitive_winability', {})
+        investment = evaluation.get('assessment_scores', {}).get('investment_feasibility', {})
+
+        tam_current = market_intel.get('tam', {}).get('current_usd_millions', 0)
+        sam_current = sam_data.get('current_usd_millions', 0)
+        sam_3yr = sam_data.get('projected_3yr_usd_millions', 0)
+
+        market_share = competitive.get('realistic_market_share_pct', 0)
+        arr_3yr = investment.get('projected_3yr_arr_millions', 0)
+        arr_5yr = investment.get('projected_5yr_arr_millions', 0)
+
+        # Extract scores
+        scores = evaluation.get('assessment_scores', {})
+        market_opp_score = scores.get('market_opportunity', {}).get('total_score', 0)
+        competitive_score = scores.get('competitive_winability', {}).get('total_score', 0)
+        investment_score = scores.get('investment_feasibility', {}).get('total_score', 0)
+        risk_score = scores.get('execution_risk', {}).get('total_score', 0)
+        strategic_score = scores.get('strategic_value', {}).get('total_score', 0)
+
+        tier = evaluation.get('recommendation_tier', 'TIER 4')
+        recommendation = evaluation.get('overall_recommendation', 'DO NOT RECOMMEND')
+        confidence = evaluation.get('confidence_level', 'low')
+
+        # Store in database
+        async with aiosqlite.connect(settings.database_path) as db:
+            cursor = await db.execute("""
+                INSERT INTO market_analysis (
+                    ideabot_session_id, project_id,
+                    tam_current_millions, sam_current_millions, sam_3yr_millions,
+                    realistic_market_share_pct, projected_3yr_arr_millions, projected_5yr_arr_millions,
+                    market_opportunity_score, competitive_winability_score, investment_feasibility_score,
+                    execution_risk_score, strategic_value_score,
+                    recommendation_tier, overall_recommendation, confidence_level,
+                    market_intelligence_json, evaluation_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                session['id'], project_id,
+                tam_current, sam_current, sam_3yr,
+                market_share, arr_3yr, arr_5yr,
+                market_opp_score, competitive_score, investment_score, risk_score, strategic_score,
+                tier, recommendation, confidence,
+                json.dumps(market_intel), json.dumps(evaluation)
+            ))
+            await db.commit()
+            analysis_id = cursor.lastrowid
+
+        # Update ideabot_sessions with market analysis summary
+        summary = f"{tier}: {recommendation}"
+        await update_ideabot_session(session['id'], {
+            'market_analysis_summary': summary
+        })
+
+        logger.info(f"Market analysis complete for {project_id}: {tier}")
+
+        return JSONResponse({
+            "status": "success",
+            "analysis_id": analysis_id,
+            "recommendation_tier": tier,
+            "overall_recommendation": recommendation,
+            "confidence": confidence,
+            "summary": evaluation.get('executive_summary', ''),
+            "result": result
+        })
+
+    except Exception as e:
+        logger.error(f"Error running market analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/ideabot/{project_id}/market-analysis")
+async def get_market_analysis(project_id: str):
+    """Get market analysis results for a project"""
+    try:
+        # Get IdeaBot session
+        session = await get_ideabot_session(project_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="IdeaBot session not found")
+
+        # Get market analysis from database
+        async with aiosqlite.connect(settings.database_path) as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute("""
+                SELECT * FROM market_analysis
+                WHERE ideabot_session_id = ?
+                ORDER BY created_at DESC
+                LIMIT 1
+            """, (session['id'],))
+            row = await cursor.fetchone()
+
+        if not row:
+            return JSONResponse({"status": "not_found", "analysis": None})
+
+        # Parse JSON fields
+        market_intel = json.loads(row['market_intelligence_json']) if row['market_intelligence_json'] else {}
+        evaluation = json.loads(row['evaluation_json']) if row['evaluation_json'] else {}
+
+        analysis = {
+            "id": row['id'],
+            "project_id": row['project_id'],
+            "recommendation_tier": row['recommendation_tier'],
+            "overall_recommendation": row['overall_recommendation'],
+            "confidence_level": row['confidence_level'],
+            "tam_current_millions": row['tam_current_millions'],
+            "sam_current_millions": row['sam_current_millions'],
+            "sam_3yr_millions": row['sam_3yr_millions'],
+            "realistic_market_share_pct": row['realistic_market_share_pct'],
+            "projected_3yr_arr_millions": row['projected_3yr_arr_millions'],
+            "projected_5yr_arr_millions": row['projected_5yr_arr_millions'],
+            "market_opportunity_score": row['market_opportunity_score'],
+            "competitive_winability_score": row['competitive_winability_score'],
+            "investment_feasibility_score": row['investment_feasibility_score'],
+            "execution_risk_score": row['execution_risk_score'],
+            "strategic_value_score": row['strategic_value_score'],
+            "market_intelligence": market_intel,
+            "evaluation": evaluation,
+            "created_at": row['created_at']
+        }
+
+        return JSONResponse({"status": "found", "analysis": analysis})
+
+    except Exception as e:
+        logger.error(f"Error retrieving market analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/api/protobot/generate-leads")
 async def protobot_generate_leads(request: Request):
     """

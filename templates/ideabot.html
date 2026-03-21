@@ -287,15 +287,111 @@
                         <button class="button button-primary" onclick="approveIdea()">
                             Approve & Enable ProtoBot
                         </button>
+                        <button class="button button-secondary" onclick="runMarketAnalysis()" style="margin-left: 12px;">
+                            📊 Run Market Analysis
+                        </button>
                     </div>
                 </div>
             </div>
             {% endif %}
+
+            <!-- Market Analysis Results -->
+            <div id="market-analysis-card" class="card mt-xl" style="display: none; border-left: 4px solid var(--rh-blue);">
+                <div class="card-header">
+                    <h2 class="card-title">Market Analysis</h2>
+                    <span id="market-analysis-tier" class="badge"></span>
+                </div>
+                <div class="card-body">
+                    <div id="market-analysis-loading" style="text-align: center; padding: 40px; display: none;">
+                        <div style="margin-bottom: 16px;">
+                            <div class="spinner"></div>
+                        </div>
+                        <p style="color: var(--rh-gray-mid);">Running comprehensive market analysis...</p>
+                        <p style="font-size: 0.85rem; color: var(--rh-gray-mid);">This may take 1-2 minutes</p>
+                    </div>
+
+                    <div id="market-analysis-results" style="display: none;">
+                        <!-- Executive Summary -->
+                        <div style="background: var(--rh-gray-lighter); padding: 16px; border-radius: var(--border-radius-sm); margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 8px 0; font-size: 1rem;">Executive Summary</h3>
+                            <p id="market-exec-summary" style="margin: 0;"></p>
+                        </div>
+
+                        <!-- Key Metrics Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                            <div style="background: white; border: 1px solid var(--rh-gray-light); padding: 12px; border-radius: var(--border-radius-sm);">
+                                <div style="font-size: 0.75rem; color: var(--rh-gray-mid); margin-bottom: 4px;">TAM (Current)</div>
+                                <div id="market-tam" style="font-size: 1.5rem; font-weight: 600; color: var(--rh-black);"></div>
+                            </div>
+                            <div style="background: white; border: 1px solid var(--rh-gray-light); padding: 12px; border-radius: var(--border-radius-sm);">
+                                <div style="font-size: 0.75rem; color: var(--rh-gray-mid); margin-bottom: 4px;">SAM (3-Year)</div>
+                                <div id="market-sam" style="font-size: 1.5rem; font-weight: 600; color: var(--rh-black);"></div>
+                            </div>
+                            <div style="background: white; border: 1px solid var(--rh-gray-light); padding: 12px; border-radius: var(--border-radius-sm);">
+                                <div style="font-size: 0.75rem; color: var(--rh-gray-mid); margin-bottom: 4px;">Market Share Target</div>
+                                <div id="market-share" style="font-size: 1.5rem; font-weight: 600; color: var(--rh-black);"></div>
+                            </div>
+                            <div style="background: white; border: 1px solid var(--rh-gray-light); padding: 12px; border-radius: var(--border-radius-sm);">
+                                <div style="font-size: 0.75rem; color: var(--rh-gray-mid); margin-bottom: 4px;">5-Year ARR</div>
+                                <div id="market-arr" style="font-size: 1.5rem; font-weight: 600; color: var(--rh-black);"></div>
+                            </div>
+                        </div>
+
+                        <!-- Scores -->
+                        <div style="margin-bottom: 24px;">
+                            <h3 style="margin: 0 0 16px 0; font-size: 1rem;">Assessment Scores</h3>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div id="score-market-opp"></div>
+                                <div id="score-competitive"></div>
+                                <div id="score-investment"></div>
+                                <div id="score-risk"></div>
+                                <div id="score-strategic"></div>
+                            </div>
+                        </div>
+
+                        <!-- Key Findings -->
+                        <div>
+                            <h3 style="margin: 0 0 16px 0; font-size: 1rem;">Key Findings</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--rh-green); margin-bottom: 8px;">✓ Strengths</div>
+                                    <ul id="market-strengths" style="margin: 0; padding-left: 20px;"></ul>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; color: var(--rh-orange); margin-bottom: 8px;">⚠ Concerns</div>
+                                    <ul id="market-concerns" style="margin: 0; padding-left: 20px;"></ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-lg">
+                            <button class="button button-secondary" onclick="viewFullMarketAnalysis()">
+                                View Full Analysis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--rh-gray-lighter);
+    border-top: 4px solid var(--rh-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 .question-block {
     margin-bottom: 24px;
     padding-bottom: 24px;
@@ -1008,6 +1104,149 @@ async function approveIdea() {
         loadingToast.dismiss();
         notify.error('Failed to approve project: ' + error.message);
     }
+}
+
+async function runMarketAnalysis() {
+    if (!confirm('Run comprehensive market analysis? This will take 1-2 minutes.')) {
+        return;
+    }
+
+    const card = document.getElementById('market-analysis-card');
+    const loading = document.getElementById('market-analysis-loading');
+    const results = document.getElementById('market-analysis-results');
+
+    card.style.display = 'block';
+    loading.style.display = 'block';
+    results.style.display = 'none';
+
+    try {
+        const response = await fetch(`/api/ideabot/${projectId}/market-analysis`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to run market analysis');
+        }
+
+        const data = await response.json();
+
+        // Display results
+        displayMarketAnalysis(data.result);
+
+        notify.success('Market analysis complete!');
+
+    } catch (error) {
+        console.error('Error running market analysis:', error);
+        notify.error('Failed to run market analysis: ' + error.message);
+        card.style.display = 'none';
+    }
+}
+
+function displayMarketAnalysis(result) {
+    const loading = document.getElementById('market-analysis-loading');
+    const results = document.getElementById('market-analysis-results');
+    const tierBadge = document.getElementById('market-analysis-tier');
+
+    loading.style.display = 'none';
+    results.style.display = 'block';
+
+    const evaluation = result.evaluation;
+    const marketIntel = result.market_intelligence;
+
+    // Set tier badge
+    const tier = evaluation.recommendation_tier;
+    tierBadge.textContent = tier;
+    tierBadge.className = 'badge';
+    if (tier === 'TIER 1') {
+        tierBadge.classList.add('badge-approved');
+    } else if (tier === 'TIER 2') {
+        tierBadge.style.backgroundColor = 'var(--rh-blue)';
+        tierBadge.style.color = 'white';
+    } else if (tier === 'TIER 3') {
+        tierBadge.style.backgroundColor = 'var(--rh-orange)';
+        tierBadge.style.color = 'white';
+    } else {
+        tierBadge.style.backgroundColor = 'var(--rh-gray-mid)';
+        tierBadge.style.color = 'white';
+    }
+
+    // Executive summary
+    document.getElementById('market-exec-summary').textContent = evaluation.executive_summary || result.reasoning;
+
+    // Metrics
+    document.getElementById('market-tam').textContent = `$${marketIntel.tam.current_usd_millions}M`;
+    document.getElementById('market-sam').textContent = `$${marketIntel.sam.projected_3yr_usd_millions}M`;
+
+    const competitiveScores = evaluation.assessment_scores.competitive_winability;
+    document.getElementById('market-share').textContent = `${competitiveScores.realistic_market_share_pct}%`;
+
+    const investmentScores = evaluation.assessment_scores.investment_feasibility;
+    document.getElementById('market-arr').textContent = `$${investmentScores.projected_5yr_arr_millions}M`;
+
+    // Scores
+    const scores = evaluation.assessment_scores;
+    renderScore('score-market-opp', 'Market Opportunity', scores.market_opportunity.total_score, 9, scores.market_opportunity.passed);
+    renderScore('score-competitive', 'Competitive Winability', scores.competitive_winability.total_score, 12, scores.competitive_winability.passed);
+    renderScore('score-investment', 'Investment Feasibility', scores.investment_feasibility.total_score, 12, scores.investment_feasibility.passed);
+    renderScore('score-risk', 'Execution Risk', scores.execution_risk.total_score, 15, scores.execution_risk.passed, true); // Lower is better
+    renderScore('score-strategic', 'Strategic Value', scores.strategic_value.total_score, 15, scores.strategic_value.passed);
+
+    // Key findings
+    const findings = evaluation.key_findings;
+    const strengthsList = document.getElementById('market-strengths');
+    strengthsList.innerHTML = findings.strengths.map(s => `<li>${s}</li>`).join('');
+
+    const concernsList = document.getElementById('market-concerns');
+    concernsList.innerHTML = findings.concerns.map(c => `<li>${c}</li>`).join('');
+
+    // Store full analysis for viewing
+    window.currentMarketAnalysis = result;
+}
+
+function renderScore(elementId, label, score, maxScore, passed, lowerIsBetter = false) {
+    const element = document.getElementById(elementId);
+    const percentage = (score / maxScore) * 100;
+    const passIcon = passed ? '✓' : '✗';
+    const passColor = passed ? 'var(--rh-green)' : 'var(--rh-red)';
+
+    element.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="font-size: 0.9rem;">${label}</div>
+            <div style="color: ${passColor}; font-weight: 600;">${passIcon} ${score}/${maxScore}</div>
+        </div>
+        <div style="width: 100%; height: 8px; background: var(--rh-gray-lighter); border-radius: 4px; overflow: hidden;">
+            <div style="width: ${percentage}%; height: 100%; background: ${passed ? 'var(--rh-green)' : 'var(--rh-orange)'}; transition: width 0.3s ease;"></div>
+        </div>
+    `;
+}
+
+function viewFullMarketAnalysis() {
+    if (!window.currentMarketAnalysis) {
+        notify.error('No market analysis data available');
+        return;
+    }
+
+    // Create modal to show full analysis
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;';
+
+    const content = document.createElement('div');
+    content.style.cssText = 'background: white; border-radius: 8px; max-width: 1000px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);';
+
+    content.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="margin: 0;">Full Market Analysis</h2>
+            <button onclick="this.closest('[style*=position]').remove()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <pre style="background: var(--rh-gray-lighter); padding: 16px; border-radius: 4px; overflow-x: auto; font-size: 0.85rem;">${JSON.stringify(window.currentMarketAnalysis, null, 2)}</pre>
+    `;
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
 }
 
 async function regenerateProtoBot() {
