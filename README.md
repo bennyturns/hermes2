@@ -53,46 +53,103 @@ python app.py
 
 5. Open your browser to http://localhost:8000
 
+## Recent Updates
+
+### March 2026 - Major Feature Release
+
+**Reference Materials System** ([Issue #9](https://github.com/bennyturns/hermes2/issues/9))
+- Upload reference materials (skills, code, diagrams, docs) during IdeaBot
+- Auto-categorization and storage in database
+- Materials used throughout ProtoBot workflow
+- Copied to `context/` directory in generated output
+- Agents incorporate materials as templates and examples
+
+**Download & Run** ([Issue #10](https://github.com/bennyturns/hermes2/issues/10))
+- Download prototypes as ZIP immediately after code generation
+- Test locally before completing full workflow
+- Available in Step 6 (early testing) and Step 8 (final handoff)
+- Quick-start commands for running prototypes
+
+**Comprehensive Market Analysis** ([Issue #11](https://github.com/bennyturns/hermes2/issues/11))
+- Optional market analysis for IdeaBot submissions
+- 9 market investigation areas (TAM, SAM, competitive, positioning, etc.)
+- 5-dimensional evaluation framework
+- TIER 1-4 recommendations with clear thresholds
+- Framework by [Ron Haberman](https://github.com/habermanron) from [redhat-et/hermes](https://github.com/redhat-et/hermes/pull/8)
+
+**Developer Steering** ([Issue #2](https://github.com/bennyturns/hermes2/issues/2) - Part 1)
+- Pre-generation execution plan review
+- Confirmation modal before blueprint generation
+- Foundation for full steering at all ProtoBot steps
+
+**Interactive Q&A** ([Issue #1](https://github.com/bennyturns/hermes2/issues/1))
+- Restored interactive Q&A in IdeaBot
+- Logic tracing and conversational flow
+
+**Editable Content** ([Issue #3](https://github.com/bennyturns/hermes2/issues/3))
+- All ProtoBot content editable inline
+- Chat panel available on all screens
+
 ### Project Structure
 
 ```
-hermes/
-├── app.py                 # FastAPI application
-├── templates/             # Jinja2 HTML templates
-├── static/               # CSS, JavaScript, images
-├── mocks/                # Mock data for UI development
-├── agents/               # AI agent implementations (Phase 2+)
-├── database.py           # Database layer (Phase 1+)
-├── config.py             # Configuration (Phase 1+)
-├── models.py             # Pydantic models (Phase 1+)
-└── output/               # Generated artifacts (gitignored)
+hermes2/
+├── app.py                      # FastAPI application
+├── database.py                 # SQLite database layer with async support
+├── config.py                   # Configuration and settings
+├── vertex_client.py            # Google Vertex AI + Claude integration
+├── file_executor.py            # Artifact writing and context directory creation
+├── seed_data.py                # Database seeding
+├── templates/                  # Jinja2 HTML templates
+│   ├── dashboard.html          # Main dashboard
+│   ├── ideabot.html            # IdeaBot Q&A and evaluation
+│   └── protobot.html           # ProtoBot 8-phase workflow
+├── static/                     # CSS, JavaScript, images
+│   ├── style.css               # Red Hat design system
+│   ├── notifications.js        # Toast notifications
+│   └── progress.js             # Progress tracking
+├── agents/                     # AI agent implementations
+│   ├── blueprint_agent.py      # Research and blueprint generation
+│   ├── code_agent.py           # Code generation with reference materials
+│   ├── infra_agent.py          # Infrastructure manifests
+│   ├── comms_agent.py          # Communications artifacts
+│   ├── market_agent.py         # Market analysis (Ron Haberman's framework)
+│   └── speckit_agent.py        # Specification generation
+├── docs/                       # Documentation
+│   ├── market-analysis/        # Market analysis framework docs
+│   │   ├── README.md
+│   │   ├── market-investigation-prompts.md
+│   │   ├── market-evaluation-prompts.md
+│   │   ├── MARKET_ANALYSIS_INTEGRATION.md
+│   │   └── MARKET_ANALYSIS_QUICK_REFERENCE.md
+│   ├── octo-definition.md      # OCTO mission definition
+│   └── strategic-focus.txt     # Strategic focus areas
+├── k8s/                        # Kubernetes/OpenShift manifests
+├── output/                     # Generated prototypes (gitignored)
+│   └── {project-id}/
+│       ├── context/            # Reference materials
+│       │   ├── skills/
+│       │   ├── code-samples/
+│       │   ├── diagrams/
+│       │   ├── docs/
+│       │   └── workflows/
+│       ├── src/                # Generated source code
+│       ├── tests/              # Generated tests
+│       ├── Makefile            # Build automation
+│       └── README.md           # Project documentation
+└── hermes.db                   # SQLite database (gitignored)
 ```
 
-### Development Phases
+## Technology Stack
 
-See [TASKS.md](TASKS.md) for detailed implementation plan.
+- **Backend**: FastAPI (Python 3.11+)
+- **Database**: SQLite with aiosqlite for async operations
+- **AI**: Google Vertex AI with Claude Sonnet 4.5
+- **Frontend**: Jinja2 templates, vanilla JavaScript
+- **Design**: Red Hat Design System (PatternFly inspired)
+- **Deployment**: OpenShift with container builds
 
-**✅ Phase 0 - UI Mockup (COMPLETE - 4 hours)**
-- P0-001: Project scaffolding (FastAPI, Red Hat design system)
-- P0-002: Base template with topbar and navigation
-- P0-003: Static CSS (complete design system)
-- P0-004: Dashboard page (project table, status badges)
-- P0-005: IdeaBot page (11-question Q&A workflow)
-- P0-006: ProtoBot page (8-phase execution tracking)
-- P0-007: Chat panel UI (functional messaging)
-- P0-008: Demo validation and documentation
-
-**Deliverables:**
-- Fully functional UI mockup with Red Hat branding
-- 3 main pages: Dashboard (`/`), IdeaBot (`/ideabot/{id}`), ProtoBot (`/protobot/{id}`)
-- Mock data integration from JSON files
-- Interactive chat interface with auto-scroll
-- Phase progress visualization
-- Responsive design system
-
-**Next Phase:** Phase 1 - Database & Core Backend (5.5 hours)
-
-## Phase 0 Features
+## Key Features
 
 ### Dashboard
 - Project overview table with filtering
@@ -100,108 +157,70 @@ See [TASKS.md](TASKS.md) for detailed implementation plan.
 - Quick actions: View, Start, Continue buttons
 - Real-time project count
 
-### IdeaBot Page
-- 11-question interview workflow
-- Next/Show All navigation modes
-- Contenteditable answer fields
-- Pre-filled answers from `mocks/ideabot_vllm-cpu.json`
-- AI evaluation card with decision + rationale
-- Approval workflow to enable ProtoBot
+### IdeaBot
+- **11-Question Interview Workflow** - Structured idea submission
+- **AI-Powered Evaluation** - Claude via Vertex AI evaluates strategic alignment
+- **📎 Reference Materials Upload** - Upload skills, code, diagrams, docs to guide prototype
+  - Auto-categorization by file type
+  - Base64 encoding for binary files
+  - Copied to `context/` directory in generated output
+- **📊 Comprehensive Market Analysis** - Optional deep market evaluation
+  - 9 investigation areas (TAM, SAM, competitive landscape, etc.)
+  - 5-dimensional scoring (Market Opportunity, Competitive Winability, Investment Feasibility, Execution Risk, Strategic Value)
+  - TIER 1-4 recommendations
+  - Framework by [Ron Haberman](https://github.com/redhat-et/hermes/pull/8)
+- **Interactive Chat** - Real-time Q&A with IdeaBot
+- **Human-in-Loop Approval** - Final review before enabling ProtoBot
 
-### ProtoBot Page
-- 8-phase progress bar (visual states: completed/active/pending)
-- Phase 1: Research leads display (8 generated tasks)
-- Phase 2: Research findings across 5 dimensions
-- Chat panel for real-time ProtoBot interaction
-- Two-column layout: phase content + chat
-- Mock data from `protobot_vllm-cpu.json`
+### ProtoBot
+- **8-Phase Workflow** - Structured prototype generation
+  1. Research Leads Generation
+  2. Research Findings
+  3. Follow-up Q&A
+  4. Technical Blueprint
+  5. Human-in-Loop Review & Approval
+  6. Code/Infrastructure/Communications Generation
+  7. Validation
+  8. Handoff Execution
+- **Developer Steering** - Pre-generation execution plan review (partial implementation)
+- **Editable Content** - All generated content can be edited inline
+- **📦 Download & Run** - Test prototypes immediately
+  - Download ZIP of complete prototype
+  - Write files to disk
+  - Quick-start commands
+  - Available in Step 6 (early testing) and Step 8 (final)
+- **Context Directory** - Reference materials copied to `context/` subdirectories
+- **Chat Interface** - ProtoBot assistance available throughout workflow
+- **Fullscreen Chat** - Dark overlay for improved visibility
+
+### Agents
+- **Blueprint Agent** - Generates technical blueprints with research
+- **Code Agent** - Generates application code using reference materials as templates
+- **Infrastructure Agent** - Creates deployment manifests
+- **Communications Agent** - Generates handoff emails and blog posts
+- **Market Agent** - Comprehensive market analysis and evaluation
+- **SpecKit Agent** - Structured specification generation
 
 ### Chat Interface
-- Send/receive messages
+- Context-aware conversations
+- Available on all major screens
+- Fullscreen mode with improved contrast
 - Auto-scroll to latest message
-- Enter key sends (Shift+Enter for new line)
-- Mock AI responses with random selection
-- Pre-loaded chat history from `chat_responses.json`
-- Message role indicators (user/assistant)
+- Message history persistence
 
-## Mock Data Structure
+## Contributing
 
-### projects.json
-```json
-[
-  {
-    "id": "vllm-cpu",
-    "name": "vLLM CPU Platform",
-    "lead": "Maryam Tahhan",
-    "strategic_priority": "AI Inference Acceleration",
-    "catcher_org": "AI Engineering",
-    "ideabot_status": "approved",
-    "protobot_status": "not_started"
-  }
-]
-```
+See [GitHub Issues](https://github.com/bennyturns/hermes2/issues) for current work and roadmap.
 
-### ideabot_vllm-cpu.json
-```json
-{
-  "project_id": "vllm-cpu",
-  "answers": {
-    "q1_name": "Maryam Tahhan",
-    "q2_idea": "...",
-    ...
-  },
-  "evaluation": {
-    "decision": "approved",
-    "rationale": "..."
-  }
-}
-```
+### High Priority Issues
+- [Issue #2](https://github.com/bennyturns/hermes2/issues/2): Developer Steering (Part 2 - inline editing, post-generation refinement)
+- [Issue #4](https://github.com/bennyturns/hermes2/issues/4): LDAP Integration
+- [Issue #5](https://github.com/bennyturns/hermes2/issues/5): Catcher Artifact System
+- [Issue #6](https://github.com/bennyturns/hermes2/issues/6): Multi-Approver Staging Workflow
 
-### protobot_vllm-cpu.json
-```json
-{
-  "project_id": "vllm-cpu",
-  "current_step": 1,
-  "step1_research_leads": [...],
-  "step2_research_findings": {...}
-}
-```
+## Credits
 
-### chat_responses.json
-```json
-{
-  "vllm-cpu": [
-    {
-      "role": "user",
-      "content": "What's the status?"
-    },
-    {
-      "role": "assistant",
-      "content": "Research phase ready..."
-    }
-  ]
-}
-```
-
-## Red Hat Design System
-
-### Colors
-- **Red Hat Red**: `#EE0000` - Primary brand, CTAs
-- **Black**: `#151515` - Headings
-- **Gray Scale**: `#1F1F1F`, `#6A6E73`, `#C7C9CA`, `#E5E5E5`, `#F5F5F5`
-- **Status Colors**: Green `#3E8635`, Orange `#EC7A08`, Blue `#0066CC`
-
-### Typography
-- **Display**: Red Hat Display (headings)
-- **Text**: Red Hat Text (body, UI)
-- **Mono**: Red Hat Mono (code)
-
-### Components
-- Cards (header/body/actions)
-- Buttons (primary/secondary/disabled)
-- Badges (approved/in-progress/not-started/n/a)
-- Tables with hover effects
-- Progress bars
-- Chat panels
-- Form fields
+- **Market Analysis Framework**: [Ron Haberman](https://github.com/habermanron) - [Original PR](https://github.com/redhat-et/hermes/pull/8)
+- **Design System**: Red Hat PatternFly
+- **AI**: Anthropic Claude via Google Vertex AI
 
