@@ -1,10 +1,10 @@
 # Hermes - Multi-stage Containerfile for OpenShift
-# Uses Red Hat UBI9 Python 3.11 base image
+# Uses Red Hat UBI9 Python 3.11 base image (cached in internal registry)
 
 # ============================================================================
 # Stage 1: Builder
 # ============================================================================
-FROM registry.access.redhat.com/ubi9/python-311:latest AS builder
+FROM python-311:latest AS builder
 
 # Set working directory
 WORKDIR /tmp/build
@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ============================================================================
 # Stage 2: Runtime
 # ============================================================================
-FROM registry.access.redhat.com/ubi9/python-311:latest
+FROM python-311:latest
 
 # Metadata
 LABEL name="hermes" \
