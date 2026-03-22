@@ -4,7 +4,7 @@
 # ============================================================================
 # Stage 1: Builder
 # ============================================================================
-FROM python-311:latest AS builder
+FROM image-registry.openshift-image-registry.svc:5000/ephemeral-hfdufp/python-311:latest AS builder
 
 # Set working directory
 WORKDIR /tmp/build
@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # ============================================================================
 # Stage 2: Runtime
 # ============================================================================
-FROM python-311:latest
+FROM image-registry.openshift-image-registry.svc:5000/ephemeral-hfdufp/python-311:latest
 
 # Metadata
 LABEL name="hermes" \
