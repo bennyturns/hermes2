@@ -1031,6 +1031,35 @@
     </div>
 </div>
 
+<!-- Post-Generation Confirmation Modal -->
+<div id="post-gen-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2>✅ Generation Complete</h2>
+            <button class="modal-close" onclick="closePostGenModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 20px; font-size: 1.1rem; color: var(--rh-black);">
+                <strong>Is this what you wanted?</strong>
+            </p>
+            <p id="post-gen-message" style="margin-bottom: 20px; color: var(--rh-gray-mid); font-size: 0.95rem;">
+                Review the generated content below.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="button button-primary" onclick="acceptGeneration()" style="width: 100%;">
+                    ✓ Yes, looks good - Continue
+                </button>
+                <button class="button button-secondary" onclick="closePostGenModal()" style="width: 100%;">
+                    ✏️ Let me edit first
+                </button>
+                <button class="button button-secondary" onclick="regenerateCurrentStep()" id="post-gen-regenerate-btn" style="width: 100%;">
+                    🔄 Regenerate
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <style>
 .phase-progress {
@@ -1969,6 +1998,9 @@ async function generateLeads() {
 
         notify.success(`Generated ${data.leads.length} research leads!`);
 
+        // Mark step as just completed for post-generation confirmation
+        sessionStorage.setItem('protobot_just_completed', 'step1_leads');
+
         // Reload page to show leads
         setTimeout(() => {
             progress.complete();
@@ -2106,6 +2138,9 @@ async function executeResearchPhase() {
 
         notify.success('Research complete!');
 
+        // Mark step as just completed for post-generation confirmation
+        sessionStorage.setItem('protobot_just_completed', 'step2_research');
+
         // Reload page to show Step 2 findings
         setTimeout(() => {
             progress.complete();
@@ -2176,6 +2211,9 @@ async function generateQuestionsPhase() {
         progress.updateStatus(`Generated ${data.questions.length} targeted questions!`);
 
         notify.success(`Generated ${data.questions.length} questions!`);
+
+        // Mark step as just completed for post-generation confirmation
+        sessionStorage.setItem('protobot_just_completed', 'step3_questions');
 
         // Reload page to show Step 3
         setTimeout(() => {
@@ -2313,6 +2351,9 @@ async function generateBlueprintPhase() {
         progress.updateStatus('Technical blueprint synthesized!');
 
         notify.success('Blueprint generated!');
+
+        // Mark step as just completed for post-generation confirmation
+        sessionStorage.setItem('protobot_just_completed', 'step4_blueprint');
 
         // Reload page to show Step 4
         setTimeout(() => {
@@ -3352,6 +3393,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Developer Steering Functions (Issue #2)
 let pendingGenerationAction = null;
+let currentRegenerateFunction = null;
 
 function showExecutionPlan(planText, actionCallback) {
     const modal = document.getElementById('pre-gen-modal');
@@ -3381,6 +3423,82 @@ function confirmGeneration() {
         console.error('ERROR: No action to execute!');
     }
 }
+
+// Post-Generation Confirmation Functions
+function showPostGenModal(stepName, message, regenerateFunc) {
+    const modal = document.getElementById('post-gen-modal');
+    const messageEl = document.getElementById('post-gen-message');
+    messageEl.textContent = message;
+    currentRegenerateFunction = regenerateFunc;
+
+    // Show/hide regenerate button based on whether function is provided
+    const regenBtn = document.getElementById('post-gen-regenerate-btn');
+    if (regenerateFunc) {
+        regenBtn.style.display = 'block';
+    } else {
+        regenBtn.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closePostGenModal() {
+    document.getElementById('post-gen-modal').style.display = 'none';
+    currentRegenerateFunction = null;
+    // Clear the sessionStorage flag
+    sessionStorage.removeItem('protobot_just_completed');
+}
+
+function acceptGeneration() {
+    closePostGenModal();
+    // User is happy, just close the modal and let them proceed
+}
+
+function regenerateCurrentStep() {
+    if (currentRegenerateFunction) {
+        closePostGenModal();
+        currentRegenerateFunction();
+    }
+}
+
+// Check on page load if we just completed a generation step
+document.addEventListener('DOMContentLoaded', function() {
+    const justCompleted = sessionStorage.getItem('protobot_just_completed');
+    if (justCompleted) {
+        setTimeout(() => {
+            switch(justCompleted) {
+                case 'step1_leads':
+                    showPostGenModal(
+                        'Step 1',
+                        'Review the research leads generated below. You can edit them inline or regenerate if needed.',
+                        regenerateLeads
+                    );
+                    break;
+                case 'step2_research':
+                    showPostGenModal(
+                        'Step 2',
+                        'Review the research findings below. You can regenerate if needed or proceed to Step 3.',
+                        null // No regenerate for research yet
+                    );
+                    break;
+                case 'step3_questions':
+                    showPostGenModal(
+                        'Step 3',
+                        'Review the follow-up questions below. Answer them to refine the blueprint, or regenerate if needed.',
+                        regenerateQuestions
+                    );
+                    break;
+                case 'step4_blueprint':
+                    showPostGenModal(
+                        'Step 4',
+                        'Review the technical blueprint below. You can edit it inline or regenerate if needed.',
+                        null // Blueprint regeneration handled differently
+                    );
+                    break;
+            }
+        }, 500); // Small delay to let page render
+    }
+});
 
 // Step 1: Generate Research Leads with confirmation
 function generateLeadsWithConfirm() {
