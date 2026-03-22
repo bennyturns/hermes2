@@ -128,10 +128,7 @@
                         <div id="generate-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
 
                         <div style="margin-top: 24px; display: flex; gap: 12px;">
-                            <button class="button button-primary" onclick="generateLeads()">Generate Research Leads</button>
-                            <button class="button button-secondary" onclick="autoRunPrototype()" style="background: linear-gradient(135deg, var(--rh-blue) 0%, #004c99 100%); color: white; font-weight: 600;">
-                                🚀 Auto-Generate Complete Prototype
-                            </button>
+                            <button class="button button-primary" onclick="generateLeadsWithConfirm()">Generate Research Leads</button>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
                             <details>
@@ -215,7 +212,7 @@
                         <p class="mb-lg">Research not executed yet. This step will investigate your project across 5 critical vectors.</p>
                         <div id="research-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
                         <div style="margin-top: 24px;">
-                            <button class="button button-primary" onclick="executeResearchPhase()">Execute Research</button>
+                            <button class="button button-primary" onclick="executeResearchWithConfirm()">Execute Research</button>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
                             <details>
@@ -281,7 +278,7 @@
                         <div id="qa-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
 
                         <div style="margin-top: 24px;">
-                            <button class="button button-primary" onclick="generateQuestionsPhase()">Generate Follow-up Questions</button>
+                            <button class="button button-primary" onclick="generateQuestionsWithConfirm()">Generate Follow-up Questions</button>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
                             <details>
@@ -3385,16 +3382,60 @@ function confirmGeneration() {
     }
 }
 
-// Test function for blueprint generation
+// Step 1: Generate Research Leads with confirmation
+function generateLeadsWithConfirm() {
+    const planText = `
+        <strong>Step 1: Generate Research Leads</strong><br><br>
+        I'll analyze your IdeaBot submission to create:<br>
+        • Technology research vectors<br>
+        • Market analysis leads<br>
+        • Competitor investigation areas<br>
+        • Standards and compliance topics<br>
+        • Implementation approach vectors<br><br>
+        This will take ~30-45 seconds.
+    `;
+    showExecutionPlan(planText, generateLeads);
+}
+
+// Step 2: Execute Research with confirmation
+function executeResearchWithConfirm() {
+    const planText = `
+        <strong>Step 2: Execute Research</strong><br><br>
+        I'll conduct research across all 5 vectors:<br>
+        • Technology landscape analysis<br>
+        • Market and competitive intelligence<br>
+        • Standards and best practices<br>
+        • Red Hat portfolio positioning<br>
+        • Implementation feasibility<br><br>
+        This will take ~60-90 seconds.
+    `;
+    showExecutionPlan(planText, executeResearchPhase);
+}
+
+// Step 3: Generate Follow-up Questions with confirmation
+function generateQuestionsWithConfirm() {
+    const planText = `
+        <strong>Step 3: Generate Follow-up Questions</strong><br><br>
+        I'll analyze research gaps and create:<br>
+        • Targeted clarification questions<br>
+        • Technical decision points<br>
+        • Requirements validation queries<br>
+        • Implementation detail questions<br><br>
+        This will take ~30-45 seconds.
+    `;
+    showExecutionPlan(planText, generateQuestionsPhase);
+}
+
+// Step 4: Generate Blueprint with confirmation
 function generateBlueprintWithConfirm() {
     const planText = `
         <strong>Step 4: Generate Technical Blueprint</strong><br><br>
-        Based on your research, I'll create:<br>
+        Based on your research and Q&A, I'll create:<br>
         • System architecture diagram<br>
         • Technology stack recommendations<br>
         • Implementation phases<br>
         • Success criteria<br><br>
-        This will take ~45-60 seconds.
+        This will take ~90-120 seconds.
     `;
     showExecutionPlan(planText, generateBlueprintPhase);
 }
