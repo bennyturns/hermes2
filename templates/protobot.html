@@ -1050,10 +1050,13 @@
                     ✓ Yes, looks good - Continue
                 </button>
                 <button class="button button-secondary" onclick="closePostGenModal()" style="width: 100%;">
-                    ✏️ Let me edit first
+                    ✏️ Let me edit manually
+                </button>
+                <button class="button button-secondary" onclick="giveFeedbackViaChat()" style="width: 100%;">
+                    💬 Give feedback and regenerate
                 </button>
                 <button class="button button-secondary" onclick="regenerateCurrentStep()" id="post-gen-regenerate-btn" style="width: 100%;">
-                    🔄 Regenerate
+                    🔄 Regenerate as-is
                 </button>
             </div>
         </div>
@@ -1911,9 +1914,20 @@ async function sendMessage() {
     }
 }
 
-// Process responses for field-aware assistance
+// Process responses for field-aware assistance and refinement requests
 async function processFieldAwareResponse(userMessage, aiResponse) {
     const lowerMsg = userMessage.toLowerCase();
+
+    // Detect refinement/regeneration requests (Issue #2 Part 2 Phase 4)
+    const isRefinementRequest = detectRefinementIntent(lowerMsg);
+    if (isRefinementRequest) {
+        const targetStep = isRefinementRequest.step;
+        const feedback = userMessage;
+
+        // Show refinement confirmation
+        showRefinementConfirmation(targetStep, feedback);
+        return; // Don't process other field-aware logic
+    }
 
     // Detect requests for field help
     if (lowerMsg.includes('commit message') || lowerMsg.includes('git message')) {
@@ -1935,6 +1949,89 @@ async function processFieldAwareResponse(userMessage, aiResponse) {
             }
         }
     }
+}
+
+// Detect if user message is asking to refine/regenerate content (Issue #2 Phase 4)
+function detectRefinementIntent(lowerMsg) {
+    // Patterns that suggest refinement
+    const refinementPatterns = [
+        { pattern: /regenerate|redo|remake|recreate/, generic: true },
+        { pattern: /change|update|modify|adjust|tweak/, generic: true },
+        { pattern: /but|except|however/, generic: true },
+        { pattern: /instead|rather/, generic: true }
+    ];
+
+    // Step-specific patterns
+    const stepPatterns = {
+        'leads': /(research )?leads?/,
+        'research': /research|findings?/,
+        'questions': /questions?|q&a|qa/,
+        'blueprint': /blueprint|design|architecture/,
+        'code': /code|implementation/,
+        'infrastructure': /infra|infrastructure|deployment|kubernetes|k8s/
+    };
+
+    // Check if message has refinement intent
+    const hasRefinementIntent = refinementPatterns.some(p => p.pattern.test(lowerMsg));
+    if (!hasRefinementIntent) return null;
+
+    // Determine which step is being referenced
+    for (const [step, pattern] of Object.entries(stepPatterns)) {
+        if (pattern.test(lowerMsg)) {
+            return { step };
+        }
+    }
+
+    return null; // Refinement intent but unclear target
+}
+
+// Show confirmation modal for refinement request
+function showRefinementConfirmation(targetStep, userFeedback) {
+    const stepNames = {
+        'leads': 'Research Leads',
+        'research': 'Research Findings',
+        'questions': 'Follow-up Questions',
+        'blueprint': 'Technical Blueprint',
+        'code': 'Code Artifacts',
+        'infrastructure': 'Infrastructure Manifests'
+    };
+
+    const stepName = stepNames[targetStep] || 'this content';
+
+    const message = `Would you like me to regenerate the ${stepName} based on your feedback?\n\n` +
+                   `Your feedback: "${userFeedback}"\n\n` +
+                   `This will create a new version incorporating your requested changes.`;
+
+    if (confirm(message)) {
+        regenerateWithFeedback(targetStep, userFeedback);
+    } else {
+        addMessage('assistant', `No problem! Feel free to make manual edits or ask more questions.`);
+    }
+}
+
+// Regenerate content with user feedback (Issue #2 Phase 4)
+async function regenerateWithFeedback(targetStep, feedback) {
+    const stepFunctions = {
+        'leads': regenerateLeads,
+        'research': null, // No regen function for research yet
+        'questions': regenerateQuestions,
+        'blueprint': null // Blueprint uses different workflow
+    };
+
+    const regenFunc = stepFunctions[targetStep];
+
+    if (!regenFunc) {
+        addMessage('assistant', `I can't automatically regenerate this step yet, but you can use the "Regenerate" button or edit manually.`);
+        return;
+    }
+
+    // Store feedback in sessionStorage for the regeneration
+    sessionStorage.setItem('protobot_refinement_feedback', feedback);
+
+    // Call the regeneration function
+    regenFunc();
+
+    addMessage('assistant', `Regenerating with your feedback...`);
 }
 
 function highlightField(fieldId) {
@@ -3452,6 +3549,36 @@ function closePostGenModal() {
 function acceptGeneration() {
     closePostGenModal();
     // User is happy, just close the modal and let them proceed
+}
+
+function giveFeedbackViaChat() {
+    closePostGenModal();
+
+    // Show chat panel if hidden
+    const chatPanel = document.getElementById('chat-panel');
+    if (chatPanel && !chatPanel.classList.contains('fullscreen')) {
+        // Could toggle fullscreen for better visibility
+        toggleChatFullscreen();
+    }
+
+    // Focus the chat input
+    const chatInput = document.querySelector('.chat-input textarea');
+    if (chatInput) {
+        chatInput.focus();
+
+        // Add helpful placeholder message
+        const justCompleted = sessionStorage.getItem('protobot_just_completed');
+        let stepName = 'this content';
+        if (justCompleted === 'step1_leads') stepName = 'the research leads';
+        else if (justCompleted === 'step2_research') stepName = 'the research findings';
+        else if (justCompleted === 'step3_questions') stepName = 'the follow-up questions';
+        else if (justCompleted === 'step4_blueprint') stepName = 'the blueprint';
+
+        chatInput.placeholder = `Tell me what to change about ${stepName}... (e.g., "Change the database from PostgreSQL to MySQL")`;
+
+        // Add a system hint message
+        addMessage('assistant', `I'm ready to refine ${stepName} based on your feedback. What would you like me to change?`);
+    }
 }
 
 function regenerateCurrentStep() {
