@@ -1109,6 +1109,37 @@ async function approveIdea() {
     }
 }
 
+// Load existing market analysis on page load
+async function loadExistingMarketAnalysis() {
+    try {
+        const response = await fetch(`/api/ideabot/${projectId}/market-analysis`);
+
+        if (!response.ok) {
+            return; // Silently fail - analysis might not exist yet
+        }
+
+        const data = await response.json();
+
+        if (data.status === 'found' && data.analysis) {
+            // Show the market analysis card
+            const card = document.getElementById('market-analysis-card');
+            card.style.display = 'block';
+
+            // Display the existing analysis
+            displayMarketAnalysis(data.analysis);
+
+            // Update button text to indicate analysis exists
+            const buttons = document.querySelectorAll('button[onclick*="runMarketAnalysis"]');
+            buttons.forEach(btn => {
+                btn.innerHTML = '🔄 Re-run Market Analysis';
+            });
+        }
+    } catch (error) {
+        console.log('No existing market analysis found:', error);
+        // Silently ignore - user hasn't run analysis yet
+    }
+}
+
 async function runMarketAnalysis() {
     if (!confirm('Run comprehensive market analysis? This will take 1-2 minutes.')) {
         return;
@@ -1139,6 +1170,12 @@ async function runMarketAnalysis() {
 
         // Display results
         displayMarketAnalysis(data.result);
+
+        // Update button text
+        const buttons = document.querySelectorAll('button[onclick*="runMarketAnalysis"]');
+        buttons.forEach(btn => {
+            btn.innerHTML = '🔄 Re-run Market Analysis';
+        });
 
         notify.success('Market analysis complete!');
 
@@ -1525,6 +1562,8 @@ async function loadReferenceMaterials() {
 document.addEventListener('DOMContentLoaded', () => {
     // Load existing reference materials
     loadReferenceMaterials();
+    // Load existing market analysis if it exists
+    loadExistingMarketAnalysis();
     // Attach blur event listeners to answer fields for auto-save
     const answerFields = document.querySelectorAll('.answer-field');
     answerFields.forEach(field => {
