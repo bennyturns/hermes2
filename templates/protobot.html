@@ -2589,6 +2589,7 @@ async function generateCode() {
 
         setTimeout(() => {
             progress.complete();
+            sessionStorage.setItem('protobot_just_completed', 'step6_code');
             window.location.reload();
         }, 1000);
 
@@ -2649,6 +2650,7 @@ async function generateCommunications() {
 
         setTimeout(() => {
             progress.complete();
+            sessionStorage.setItem('protobot_just_completed', 'step6_comms');
             window.location.reload();
         }, 1000);
 
@@ -2711,6 +2713,7 @@ async function generateInfrastructure() {
 
         setTimeout(() => {
             progress.complete();
+            sessionStorage.setItem('protobot_just_completed', 'step6_infra');
             window.location.reload();
         }, 1000);
 
@@ -3639,6 +3642,15 @@ function editManually() {
             case 'step4_blueprint':
                 editBlueprint();
                 break;
+            case 'step6_code':
+                notify.info('Use the ✏️ Edit buttons next to each file to modify code artifacts');
+                break;
+            case 'step6_infra':
+                notify.info('Use the ✏️ Edit buttons next to each file to modify infrastructure artifacts');
+                break;
+            case 'step6_comms':
+                notify.info('Use the ✏️ Edit buttons next to each item to modify communications');
+                break;
             default:
                 console.log('No edit modal for step:', justCompleted);
         }
@@ -3667,6 +3679,9 @@ function giveFeedbackViaChat() {
         else if (justCompleted === 'step2_research') stepName = 'the research findings';
         else if (justCompleted === 'step3_questions') stepName = 'the follow-up questions';
         else if (justCompleted === 'step4_blueprint') stepName = 'the blueprint';
+        else if (justCompleted === 'step6_code') stepName = 'the code artifacts';
+        else if (justCompleted === 'step6_infra') stepName = 'the infrastructure artifacts';
+        else if (justCompleted === 'step6_comms') stepName = 'the communications';
 
         chatInput.placeholder = `Tell me what to change about ${stepName}... (e.g., "Change the database from PostgreSQL to MySQL")`;
 
@@ -3714,6 +3729,27 @@ document.addEventListener('DOMContentLoaded', function() {
                         'Step 4',
                         'Review the technical blueprint below. You can edit it inline or regenerate if needed.',
                         null // Blueprint regeneration handled differently
+                    );
+                    break;
+                case 'step6_code':
+                    showPostGenModal(
+                        'Step 6 - Code',
+                        'Code artifacts generated! Review the files below, download to test locally, or edit as needed.',
+                        null
+                    );
+                    break;
+                case 'step6_infra':
+                    showPostGenModal(
+                        'Step 6 - Infrastructure',
+                        'Infrastructure artifacts generated! Review Containerfile, Kubernetes manifests, and deployment docs below.',
+                        null
+                    );
+                    break;
+                case 'step6_comms':
+                    showPostGenModal(
+                        'Step 6 - Communications',
+                        'Communications generated! Review the handoff email, calendar invite, and blog post below.',
+                        null
                     );
                     break;
             }
