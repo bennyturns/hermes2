@@ -1052,7 +1052,7 @@
                 <button type="button" class="button button-primary" onclick="acceptGeneration()" style="width: 100%;">
                     ✓ Yes, looks good - Continue
                 </button>
-                <button type="button" class="button button-secondary" onclick="closePostGenModal()" style="width: 100%;">
+                <button type="button" class="button button-secondary" onclick="editManually()" style="width: 100%;">
                     ✏️ Let me edit manually
                 </button>
                 <button type="button" class="button button-secondary" onclick="giveFeedbackViaChat()" style="width: 100%;">
@@ -3614,6 +3614,35 @@ function closePostGenModal() {
 function acceptGeneration() {
     closePostGenModal();
     // User is happy, just close the modal and let them proceed
+}
+
+function editManually() {
+    // Get which step just completed
+    const justCompleted = sessionStorage.getItem('protobot_just_completed');
+
+    // Close post-gen modal
+    closePostGenModal();
+
+    // Open the appropriate edit modal
+    setTimeout(() => {
+        switch(justCompleted) {
+            case 'step1_leads':
+                editResearchLeads();
+                break;
+            case 'step2_research':
+                editResearchFindings();
+                break;
+            case 'step3_questions':
+                // Q&A uses inline editing, no modal
+                notify.info('Click on the answer fields below to edit them inline');
+                break;
+            case 'step4_blueprint':
+                editBlueprint();
+                break;
+            default:
+                console.log('No edit modal for step:', justCompleted);
+        }
+    }, 100); // Small delay to ensure post-gen modal closes first
 }
 
 function giveFeedbackViaChat() {
