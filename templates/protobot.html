@@ -67,13 +67,13 @@
 
             <!-- Step Navigation -->
             <div style="display: flex; justify-content: space-between; margin-top: 24px; padding: 16px; background-color: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
-                <button class="button button-secondary" onclick="navigateToStep({{ protobot_data.current_step - 1 }})" {% if protobot_data.current_step <= 1 %}disabled{% endif %}>
+                <button type="button" class="button button-secondary" onclick="navigateToStep({{ protobot_data.current_step - 1 }})" {% if protobot_data.current_step <= 1 %}disabled{% endif %}>
                     ← Previous Step
                 </button>
                 <div style="color: var(--rh-gray-mid); font-weight: 500;">
                     Step {{ protobot_data.current_step }} of 8
                 </div>
-                <button class="button button-secondary" onclick="navigateToStep({{ protobot_data.current_step + 1 }})" {% if protobot_data.current_step >= 8 %}disabled{% endif %}>
+                <button type="button" class="button button-secondary" onclick="navigateToStep({{ protobot_data.current_step + 1 }})" {% if protobot_data.current_step >= 8 %}disabled{% endif %}>
                     Next Step →
                 </button>
             </div>
@@ -104,11 +104,11 @@
                         </div>
 
                         <div style="margin-top: 24px; display: flex; gap: 12px;">
-                            <button class="edit-button" onclick="editResearchLeads()">
+                            <button type="button" class="edit-button" onclick="editResearchLeads()">
                                 ✏️ Edit Research Leads
                             </button>
-                            <button class="button button-secondary" onclick="saveLeads()">Save Inline Changes</button>
-                            <button class="button button-secondary" onclick="regenerateLeads()">Regenerate Leads</button>
+                            <button type="button" class="button button-secondary" onclick="saveLeads()">Save Inline Changes</button>
+                            <button type="button" class="button button-secondary" onclick="regenerateLeads()">Regenerate Leads</button>
                         </div>
 
                         <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
@@ -131,7 +131,7 @@
                         <div id="generate-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
 
                         <div style="margin-top: 24px; display: flex; gap: 12px;">
-                            <button class="button button-primary" onclick="generateLeadsWithConfirm()">Generate Research Leads</button>
+                            <button type="button" class="button button-primary" onclick="generateLeadsWithConfirm()">Generate Research Leads</button>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
                             <details>
@@ -159,7 +159,7 @@
                         <p class="mb-lg">Research complete! ProtoBot has analyzed findings across 5 key dimensions.</p>
 
                         <div style="margin-bottom: 16px;">
-                            <button class="edit-button" onclick="editResearchFindings()">
+                            <button type="button" class="edit-button" onclick="editResearchFindings()">
                                 ✏️ Edit Research Findings
                             </button>
                         </div>
@@ -215,7 +215,7 @@
                         <p class="mb-lg">Research not executed yet. This step will investigate your project across 5 critical vectors.</p>
                         <div id="research-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
                         <div style="margin-top: 24px;">
-                            <button class="button button-primary" onclick="executeResearchWithConfirm()">Execute Research</button>
+                            <button type="button" class="button button-primary" onclick="executeResearchWithConfirm()">Execute Research</button>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
                             <details>
@@ -257,8 +257,8 @@
                         </div>
 
                         <div style="margin-top: 24px; display: flex; gap: 12px;">
-                            <button class="button button-secondary" onclick="saveAnswers()">Save Answers</button>
-                            <button class="button button-secondary" onclick="regenerateQuestions()">Regenerate Questions</button>
+                            <button type="button" class="button button-secondary" onclick="saveAnswers()">Save Answers</button>
+                            <button type="button" class="button button-secondary" onclick="regenerateQuestions()">Regenerate Questions</button>
                         </div>
 
                         <div style="margin-top: 24px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
@@ -281,7 +281,7 @@
                         <div id="qa-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
 
                         <div style="margin-top: 24px;">
-                            <button class="button button-primary" onclick="generateQuestionsWithConfirm()">Generate Follow-up Questions</button>
+                            <button type="button" class="button button-primary" onclick="generateQuestionsWithConfirm()">Generate Follow-up Questions</button>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
                             <details>
@@ -309,14 +309,14 @@
                         <p class="mb-lg">Complete technical blueprint synthesized from research and Q&A. Review the blueprint and proceed to HIL approval when ready.</p>
 
                         <div style="margin-bottom: 24px; display: flex; gap: 12px;">
-                            <button class="edit-button" onclick="editBlueprint()">
+                            <button type="button" class="edit-button" onclick="editBlueprint()">
                                 ✏️ Edit Blueprint
                             </button>
                             <a href="/api/protobot/export-blueprint/{{ project.id }}" class="button button-secondary" download>
                                 📄 Export as Markdown
                             </a>
                             {% if protobot_data.step6_code_artifacts or protobot_data.step6_infra_artifacts or protobot_data.step6_comms_artifacts %}
-                            <button class="button button-primary" onclick="regenerateWithUpdatedBlueprint()">
+                            <button type="button" class="button button-primary" onclick="regenerateWithUpdatedBlueprint()">
                                 🔄 Regenerate All Artifacts
                             </button>
                             {% endif %}
@@ -380,7 +380,7 @@
                         <div id="blueprint-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
 
                         <div style="margin-top: 24px;">
-                            <button class="button button-primary" onclick="generateBlueprintWithConfirm()">Generate Blueprint</button>
+                            <button type="button" class="button button-primary" onclick="generateBlueprintWithConfirm()">Generate Blueprint</button>
                         </div>
                         {% endif %}
                     </div>
@@ -428,8 +428,8 @@
                         <div id="approval-status" style="display: none; padding: 12px; margin: 16px 0; border-radius: var(--border-radius-sm);"></div>
 
                         <div style="margin-top: 24px; display: flex; gap: 12px;">
-                            <button class="button button-primary" onclick="approveBlueprint()">Approve & Proceed to Execution</button>
-                            <button class="button button-secondary" onclick="window.location.reload()">Back to Review Blueprint</button>
+                            <button type="button" class="button button-primary" onclick="approveBlueprint()">Approve & Proceed to Execution</button>
+                            <button type="button" class="button button-secondary" onclick="window.location.reload()">Back to Review Blueprint</button>
                         </div>
                         <div style="margin-top: 16px; padding: 16px; background: var(--rh-gray-lighter); border-radius: var(--border-radius-sm);">
                             <details>
@@ -475,7 +475,7 @@
                                             <span class="artifact-name">{{ artifact.filename }}</span>
                                             <span class="artifact-type badge">{{ artifact.type }}</span>
                                         </div>
-                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_code_artifacts', {{ loop.index0 }})">✏️ Edit</button>
+                                        <button type="button" class="edit-button" onclick="event.stopPropagation(); editArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_code_artifacts', {{ loop.index0 }})">✏️ Edit</button>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -483,7 +483,7 @@
                             {% else %}
                             <div class="panel-body">
                                 <div id="code-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
-                                <button class="button button-primary" onclick="generateCode()">Generate Code Artifacts</button>
+                                <button type="button" class="button button-primary" onclick="generateCode()">Generate Code Artifacts</button>
                             </div>
                             {% endif %}
                         </div>
@@ -508,7 +508,7 @@
                                             <span class="artifact-name">{{ artifact.filename }}</span>
                                             <span class="artifact-type badge">{{ artifact.type }}</span>
                                         </div>
-                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_infra_artifacts', {{ loop.index0 }})">✏️ Edit</button>
+                                        <button type="button" class="edit-button" onclick="event.stopPropagation(); editArtifact('{{ artifact.filename }}', `{{ artifact.content|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_infra_artifacts', {{ loop.index0 }})">✏️ Edit</button>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -516,7 +516,7 @@
                             {% else %}
                             <div class="panel-body">
                                 <div id="infra-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
-                                <button class="button button-primary" onclick="generateInfrastructure()">Generate Infrastructure Artifacts</button>
+                                <button type="button" class="button button-primary" onclick="generateInfrastructure()">Generate Infrastructure Artifacts</button>
                             </div>
                             {% endif %}
                         </div>
@@ -541,7 +541,7 @@
                                             <span class="artifact-name">transfer-email.eml</span>
                                             <span class="artifact-type badge">email</span>
                                         </div>
-                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('transfer-email.eml', `{{ protobot_data.step6_comms_artifacts.email|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'email')">✏️ Edit</button>
+                                        <button type="button" class="edit-button" onclick="event.stopPropagation(); editArtifact('transfer-email.eml', `{{ protobot_data.step6_comms_artifacts.email|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'email')">✏️ Edit</button>
                                     </div>
                                     {% endif %}
                                     {% if protobot_data.step6_comms_artifacts.calendar %}
@@ -551,7 +551,7 @@
                                             <span class="artifact-name">transfer-meeting.ics</span>
                                             <span class="artifact-type badge">calendar</span>
                                         </div>
-                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('transfer-meeting.ics', `{{ protobot_data.step6_comms_artifacts.calendar|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'calendar')">✏️ Edit</button>
+                                        <button type="button" class="edit-button" onclick="event.stopPropagation(); editArtifact('transfer-meeting.ics', `{{ protobot_data.step6_comms_artifacts.calendar|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'calendar')">✏️ Edit</button>
                                     </div>
                                     {% endif %}
                                     {% if protobot_data.step6_comms_artifacts.blog %}
@@ -561,7 +561,7 @@
                                             <span class="artifact-name">blog-post.md</span>
                                             <span class="artifact-type badge">blog</span>
                                         </div>
-                                        <button class="edit-button" onclick="event.stopPropagation(); editArtifact('blog-post.md', `{{ protobot_data.step6_comms_artifacts.blog|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'blog')">✏️ Edit</button>
+                                        <button type="button" class="edit-button" onclick="event.stopPropagation(); editArtifact('blog-post.md', `{{ protobot_data.step6_comms_artifacts.blog|replace('`', '\\`')|replace('$', '\\$') }}`, 'step6_comms_artifacts', 'blog')">✏️ Edit</button>
                                     </div>
                                     {% endif %}
                                 </div>
@@ -569,7 +569,7 @@
                             {% else %}
                             <div class="panel-body">
                                 <div id="comms-status" style="display: none; padding: 12px; margin-bottom: 16px; border-radius: var(--border-radius-sm);"></div>
-                                <button class="button button-primary" onclick="generateCommunications()">Generate Communications</button>
+                                <button type="button" class="button button-primary" onclick="generateCommunications()">Generate Communications</button>
                             </div>
                             {% endif %}
                         </div>
@@ -621,7 +621,7 @@
                         <div class="mt-xl" style="text-align: center; padding: 24px; background-color: var(--rh-gray-lighter); border-radius: var(--border-radius-md);">
                             <h3 style="color: var(--rh-green); margin-bottom: 16px;">✓ All Artifacts Generated!</h3>
                             <p class="mb-lg">Code, infrastructure, and communications artifacts are ready for validation.</p>
-                            <button class="button button-primary" onclick="proceedToValidation()">
+                            <button type="button" class="button button-primary" onclick="proceedToValidation()">
                                 Proceed to Validation →
                             </button>
                             <details style="margin-top: 16px;">
@@ -688,7 +688,7 @@
                                     <label for="val-comms">Communications reviewed</label>
                                 </div>
                             </div>
-                            <button class="button button-primary mt-md" onclick="approveValidation()">
+                            <button type="button" class="button button-primary mt-md" onclick="approveValidation()">
                                 Mark Validation Complete
                             </button>
                         </div>
@@ -747,7 +747,7 @@
                                     <label>Output Directory:</label>
                                     <input type="text" id="output-dir" value="{% if protobot_data.step8_final_config and protobot_data.step8_final_config.output_dir %}{{ protobot_data.step8_final_config.output_dir }}{% else %}output/{{ project.id }}{% endif %}" placeholder="output/project-name">
                                 </div>
-                                <button class="button button-primary mt-sm" onclick="executeFileWrite()">
+                                <button type="button" class="button button-primary mt-sm" onclick="executeFileWrite()">
                                     Write Files to Disk
                                 </button>
                                 {% if protobot_data.step8_final_config and protobot_data.step8_final_config.files_written %}
@@ -827,11 +827,11 @@
                                 <div class="action-input">
                                     <label>Commit Message:</label>
                                     <textarea id="commit-msg" rows="3" placeholder="feat: Add prototype implementation for {{ project.name }}">{% if protobot_data.step8_final_config and protobot_data.step8_final_config.commit_message %}{{ protobot_data.step8_final_config.commit_message }}{% endif %}</textarea>
-                                    <button class="button button-secondary mt-sm" onclick="askForCommitMessage()" style="font-size: 0.85rem; padding: 6px 12px;">
+                                    <button type="button" class="button button-secondary mt-sm" onclick="askForCommitMessage()" style="font-size: 0.85rem; padding: 6px 12px;">
                                         💬 Ask AI for suggestion
                                     </button>
                                 </div>
-                                <button class="button button-primary mt-sm" onclick="generatePatch()">
+                                <button type="button" class="button button-primary mt-sm" onclick="generatePatch()">
                                     Generate Git Patch
                                 </button>
                                 {% if protobot_data.step8_final_config and protobot_data.step8_final_config.patch_created %}
@@ -856,7 +856,7 @@
                                     <label>Recipients (Catcher Team):</label>
                                     <input type="text" id="recipients" value="{% if protobot_data.step8_final_config and protobot_data.step8_final_config.catcher_emails %}{{ protobot_data.step8_final_config.catcher_emails }}{% elif catcher_emails %}{{ catcher_emails }}{% else %}pm@redhat.com, em@redhat.com, tl@redhat.com{% endif %}" placeholder="email1@redhat.com, email2@redhat.com">
                                 </div>
-                                <button class="button button-primary mt-sm" onclick="sendCommunications()">
+                                <button type="button" class="button button-primary mt-sm" onclick="sendCommunications()">
                                     Send Email & Calendar Invite
                                 </button>
                                 {% if protobot_data.step8_final_config and protobot_data.step8_final_config.comms_sent %}
@@ -881,7 +881,7 @@
                                     <label>JIRA Ticket:</label>
                                     <input type="text" id="jira-ticket" value="{% if protobot_data.step8_final_config and protobot_data.step8_final_config.jira_ticket %}{{ protobot_data.step8_final_config.jira_ticket }}{% else %}OCTO-XXX{% endif %}" placeholder="OCTO-123">
                                 </div>
-                                <button class="button button-primary mt-sm" onclick="updateJira()">
+                                <button type="button" class="button button-primary mt-sm" onclick="updateJira()">
                                     Update JIRA Ticket
                                 </button>
                                 {% if protobot_data.step8_final_config and protobot_data.step8_final_config.jira_updated %}
@@ -903,7 +903,7 @@
                                 ✓ Communications sent<br>
                                 ✓ JIRA ticket updated
                             </p>
-                            <button class="button button-primary mt-md" onclick="window.location.href='/'">
+                            <button type="button" class="button button-primary mt-md" onclick="window.location.href='/'">
                                 Return to Dashboard
                             </button>
                             {% else %}
@@ -956,7 +956,7 @@
                             <h3>ProtoBot Chat</h3>
                             <div style="display: flex; gap: 12px; align-items: center;">
                                 <span class="chat-context-badge" id="chat-context-badge">Blueprint Agent</span>
-                                <button class="button button-secondary" onclick="toggleChatFullscreen()" id="fullscreen-btn" style="padding: 4px 12px; font-size: 0.85rem;">
+                                <button type="button" class="button button-secondary" onclick="toggleChatFullscreen()" id="fullscreen-btn" style="padding: 4px 12px; font-size: 0.85rem;">
                                     <span id="fullscreen-icon">⛶</span> Fullscreen
                                 </button>
                             </div>
@@ -981,7 +981,7 @@
                         </div>
                         <div class="chat-input">
                             <textarea placeholder="Ask ProtoBot a question..." rows="3"></textarea>
-                            <button class="button button-primary">Send</button>
+                            <button type="button" class="button button-primary">Send</button>
                         </div>
                     </div>
                 </div>
@@ -1001,8 +1001,8 @@
             <textarea id="edit-modal-content" rows="20" style="width: 100%; font-family: var(--font-mono); font-size: 0.9rem; padding: 12px; border: 1px solid var(--rh-gray-light); border-radius: var(--border-radius-sm);"></textarea>
 
             <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
-                <button class="button button-secondary" onclick="closeEditModal()">Cancel</button>
-                <button class="button button-primary" onclick="saveEditedContent()">Save Changes</button>
+                <button type="button" class="button button-secondary" onclick="closeEditModal()">Cancel</button>
+                <button type="button" class="button button-primary" onclick="saveEditedContent()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -1025,8 +1025,8 @@
                 You can edit the results afterward or chat to refine.
             </p>
             <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                <button class="button button-secondary" onclick="closePreGenModal()">Cancel</button>
-                <button class="button button-primary" onclick="confirmGeneration()" id="confirm-gen-btn">
+                <button type="button" class="button button-secondary" onclick="closePreGenModal()">Cancel</button>
+                <button type="button" class="button button-primary" onclick="confirmGeneration()" id="confirm-gen-btn">
                     Proceed →
                 </button>
             </div>
@@ -1049,16 +1049,16 @@
                 Review the generated content below.
             </p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <button class="button button-primary" onclick="acceptGeneration()" style="width: 100%;">
+                <button type="button" class="button button-primary" onclick="acceptGeneration()" style="width: 100%;">
                     ✓ Yes, looks good - Continue
                 </button>
-                <button class="button button-secondary" onclick="closePostGenModal()" style="width: 100%;">
+                <button type="button" class="button button-secondary" onclick="closePostGenModal()" style="width: 100%;">
                     ✏️ Let me edit manually
                 </button>
-                <button class="button button-secondary" onclick="giveFeedbackViaChat()" style="width: 100%;">
+                <button type="button" class="button button-secondary" onclick="giveFeedbackViaChat()" style="width: 100%;">
                     💬 Give feedback and regenerate
                 </button>
-                <button class="button button-secondary" onclick="regenerateCurrentStep()" id="post-gen-regenerate-btn" style="width: 100%;">
+                <button type="button" class="button button-secondary" onclick="regenerateCurrentStep()" id="post-gen-regenerate-btn" style="width: 100%;">
                     🔄 Regenerate as-is
                 </button>
             </div>
