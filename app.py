@@ -2436,9 +2436,12 @@ async def download_prototype(project_id: str):
         from pathlib import Path
         from fastapi.responses import StreamingResponse
 
+        logger.info(f"Download requested for project {project_id}")
+
         # Get output directory from session
         protobot_session = await get_protobot_session(project_id)
         if not protobot_session:
+            logger.error(f"ProtoBot session not found for project {project_id}")
             raise HTTPException(status_code=404, detail="ProtoBot session not found")
 
         step8_data = protobot_session.get('step8_final_config', {})
@@ -2447,14 +2450,18 @@ async def download_prototype(project_id: str):
         if not output_dir:
             # Try default location
             output_dir = f'output/{project_id}'
+            logger.info(f"Using default output directory: {output_dir}")
 
         output_path = Path(output_dir)
+        logger.info(f"Output path: {output_path}, exists: {output_path.exists()}")
 
         if not output_path.exists():
-            raise HTTPException(status_code=404, detail="Output directory not found")
+            logger.error(f"Output directory not found: {output_path}")
+            raise HTTPException(status_code=404, detail=f"Output directory not found: {output_dir}. Generate code artifacts first.")
 
         # Create ZIP in memory
         zip_buffer = io.BytesIO()
+        file_count = 0
 
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             # Add all files from output directory
@@ -2463,8 +2470,10 @@ async def download_prototype(project_id: str):
                     # Create relative path for ZIP
                     arcname = file_path.relative_to(output_path.parent)
                     zip_file.write(file_path, arcname)
+                    file_count += 1
 
         zip_buffer.seek(0)
+        logger.info(f"Created ZIP with {file_count} files")
 
         # Get project name for filename
         ideabot_session = await get_ideabot_session(project_id)

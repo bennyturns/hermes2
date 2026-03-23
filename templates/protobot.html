@@ -2925,11 +2925,17 @@ async function downloadPrototype() {
         btn.disabled = true;
         btn.textContent = '⏳ Preparing download...';
 
+        console.log('Downloading prototype for project:', projectId);
+
         // Download ZIP file
         const response = await fetch(`/api/protobot/${projectId}/download`);
 
+        console.log('Download response:', response.status, response.statusText);
+
         if (!response.ok) {
-            throw new Error('Download failed');
+            const errorText = await response.text();
+            console.error('Download failed:', errorText);
+            throw new Error(`Download failed (${response.status}): ${errorText}`);
         }
 
         // Get the blob and create download link
@@ -3033,10 +3039,16 @@ async function downloadPrototypeStep6() {
         btn.disabled = true;
         btn.textContent = '⏳ Preparing download...';
 
+        console.log('Downloading prototype (Step 6) for project:', projectId);
+
         const response = await fetch(`/api/protobot/${projectId}/download`);
 
+        console.log('Download response:', response.status, response.statusText);
+
         if (!response.ok) {
-            throw new Error('Download failed');
+            const errorText = await response.text();
+            console.error('Download failed:', errorText);
+            throw new Error(`Download failed (${response.status}): ${errorText}`);
         }
 
         const blob = await response.blob();
