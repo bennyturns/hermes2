@@ -104,7 +104,10 @@
                         </div>
 
                         <div style="margin-top: 24px; display: flex; gap: 12px;">
-                            <button class="button button-secondary" onclick="saveLeads()">Save Changes</button>
+                            <button class="edit-button" onclick="editResearchLeads()">
+                                ✏️ Edit Research Leads
+                            </button>
+                            <button class="button button-secondary" onclick="saveLeads()">Save Inline Changes</button>
                             <button class="button button-secondary" onclick="regenerateLeads()">Regenerate Leads</button>
                         </div>
 
@@ -3453,7 +3456,27 @@ async function saveEditedContent() {
     }
 }
 
-// Edit Research Findings
+// Edit Research Leads (Step 1)
+function editResearchLeads() {
+    try {
+        console.log('editResearchLeads called');
+        const leads = {{ protobot_data.step1_research_leads|tojson if protobot_data.step1_research_leads else '[]' }};
+        console.log('Leads data:', leads);
+        const content = JSON.stringify(leads, null, 2);
+        console.log('Content to edit:', content);
+
+        openEditModal(
+            'Edit Research Leads',
+            content,
+            { type: 'research_leads', field: 'step1_research_leads' }
+        );
+    } catch (error) {
+        console.error('Error in editResearchLeads:', error);
+        notify.error('Failed to open edit modal: ' + error.message);
+    }
+}
+
+// Edit Research Findings (Step 2)
 function editResearchFindings() {
     try {
         console.log('editResearchFindings called');

@@ -2055,8 +2055,8 @@ async def protobot_save_edit(request: Request):
             raise HTTPException(status_code=400, detail="project_id, context, and field are required")
 
         # Handle different contexts
-        if context == 'research_findings' or context == 'blueprint':
-            # Parse JSON string back to dict
+        if context in ['research_leads', 'research_findings', 'blueprint']:
+            # Parse JSON string back to dict/list
             import json
             try:
                 parsed_data = json.loads(edited_data)
