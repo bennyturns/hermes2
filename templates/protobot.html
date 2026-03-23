@@ -3380,15 +3380,30 @@ function processChatCommand(message) {
 let currentEditContext = null;
 
 function openEditModal(title, content, context) {
+    console.log('openEditModal called:', { title, contentLength: content?.length, context });
+
     const modal = document.getElementById('edit-modal');
     const modalTitle = document.getElementById('edit-modal-title');
     const modalContent = document.getElementById('edit-modal-content');
+
+    if (!modal) {
+        console.error('Modal element not found!');
+        notify.error('Edit modal not found on page');
+        return;
+    }
+
+    if (!modalTitle || !modalContent) {
+        console.error('Modal elements missing:', { modalTitle, modalContent });
+        notify.error('Modal configuration error');
+        return;
+    }
 
     modalTitle.textContent = title;
     modalContent.value = content;
     currentEditContext = context;
 
     modal.style.display = 'flex';
+    console.log('Modal display set to flex, z-index:', window.getComputedStyle(modal).zIndex);
 }
 
 function closeEditModal() {
@@ -3440,26 +3455,41 @@ async function saveEditedContent() {
 
 // Edit Research Findings
 function editResearchFindings() {
-    const findings = {{ protobot_data.step2_research_findings|tojson if protobot_data.step2_research_findings else '{}' }};
-    const content = JSON.stringify(findings, null, 2);
+    try {
+        console.log('editResearchFindings called');
+        const findings = {{ protobot_data.step2_research_findings|tojson if protobot_data.step2_research_findings else '{}' }};
+        console.log('Findings data:', findings);
+        const content = JSON.stringify(findings, null, 2);
+        console.log('Content to edit:', content);
 
-    openEditModal(
-        'Edit Research Findings',
-        content,
-        { type: 'research_findings', field: 'step2_research_findings' }
-    );
+        openEditModal(
+            'Edit Research Findings',
+            content,
+            { type: 'research_findings', field: 'step2_research_findings' }
+        );
+    } catch (error) {
+        console.error('Error in editResearchFindings:', error);
+        notify.error('Failed to open edit modal: ' + error.message);
+    }
 }
 
 // Edit Blueprint
 function editBlueprint() {
-    const blueprint = {{ protobot_data.step4_blueprint|tojson if protobot_data.step4_blueprint else '{}' }};
-    const content = JSON.stringify(blueprint, null, 2);
+    try {
+        console.log('editBlueprint called');
+        const blueprint = {{ protobot_data.step4_blueprint|tojson if protobot_data.step4_blueprint else '{}' }};
+        console.log('Blueprint data:', blueprint);
+        const content = JSON.stringify(blueprint, null, 2);
 
-    openEditModal(
-        'Edit Blueprint',
-        content,
-        { type: 'blueprint', field: 'step4_blueprint' }
-    );
+        openEditModal(
+            'Edit Blueprint',
+            content,
+            { type: 'blueprint', field: 'step4_blueprint' }
+        );
+    } catch (error) {
+        console.error('Error in editBlueprint:', error);
+        notify.error('Failed to open edit modal: ' + error.message);
+    }
 }
 
 // Edit Artifact (for code/infra/comms)
